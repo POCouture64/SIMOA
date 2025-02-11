@@ -1,11 +1,14 @@
 ################################################################################
 ## Loading in the data and changing the name
 
-SIMOA <- SIMOA_Data_Cleaning_9_Jan_POC
-
-new.packages("data.table")
+install.packages("data.table")
+library(readxl)
 library(data.table)
 library(dplyr)
+
+SIMOA_Data_Cleaning_9_Jan_POC <- read_excel("SIMOA Data Cleaning 9 Jan POC.xlsx")
+View(SIMOA_Data_Cleaning_9_Jan_POC)
+
 
 ## Renaming all the columns to change them from a ...# format to meaningful text 
 ## to allow me to better keep track of the variables I am using in the analysis

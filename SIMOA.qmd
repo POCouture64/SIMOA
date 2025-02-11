@@ -426,6 +426,16 @@ SIMOA <- SIMOA[, !colnames(SIMOA) %in%
 
 ```
 
+## Demographic Data (ALL RESPONDENTS)
+
+Below I will include all the code I used to calculate the demographic data for
+all participants who have indicated they are ≥65 years old either from the yes/no 
+question or if they have indicated a numerical value for their age. Furthermore,
+the participant data will only be included if they were able to identify which 
+BZRA they use(d). This will ensure that the people included in the analyses were
+really using BZRAs rather than other medications which can have an impact on 
+sleep such as antihistamines, melatonin, or others. 
+
 ```{r}
 #| label: mean/sd for age (All Respondents)
 ## This is the code I used to calculate the mean and sd for the age column of 

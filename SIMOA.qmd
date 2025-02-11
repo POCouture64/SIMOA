@@ -403,4 +403,28 @@ colnames(SIMOA)[1:339] <- c(
 )
 ```
 
+```{r}
+#|label: Removing the row with Question on it
+# Here is the code I will use to remove the first row of the data because it 
+# is simply repeating the questions from the row above.
+
+SIMOA <- SIMOA[-1, ]
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 The `echo: false` option disables the printing of code (only output is displayed).

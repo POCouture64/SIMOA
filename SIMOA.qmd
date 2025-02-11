@@ -17,19 +17,6 @@ This is all the code I am going to use for my MSc thesis. I will have it broken 
 # Here I will include all the code I need to install the packages I need to 
 # conduct my analysis. I will keep adding to this throughout my coding.
 
-detach("package:tidyverse", unload = TRUE)
-unloadNamespace("ggplot2")
-unloadNamespace("dplyr")
-unloadNamespace("tibble")
-unloadNamespace("tidyr")
-unloadNamespace("readr")
-unloadNamespace("purrr")
-unloadNamespace("forcats")
-unloadNamespace("lubridate")
-
-
-
-
 ```
 
 ```{r}

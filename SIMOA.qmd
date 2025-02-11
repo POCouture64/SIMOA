@@ -49,7 +49,7 @@ View(SIMOA)
 
 ```
 
-## Renaming the columns
+## Formatting the Data
 
 ```{r}
 #| label: Rename all the columns of data
@@ -108,8 +108,8 @@ colnames(SIMOA)[1:339] <- c(
   "Do you use any nicotine products?",
   "What nicotine products do you use?",
   "How often do you use these products?",
-  "How often do you drink alcohol? One standard drink of alcohol is equal to: Beer/Cider/Cooler: 341 ml (12 oz.) of 5% alcohol Wine: 142 ml (5 oz.) of 12% alcohol Spirits (rye, gin, rum, etc.): 43 ml (1.5 oz.) of 40% alcohol",
-  "How often do you drink alcohol? One standard drink of alcohol is equal to: Beer/Cider/Cooler: 341 ml (12 oz.) of 5% alcohol Wine: 142 ml (5 oz.) of 12% alcohol Spirits (rye, gin, rum, etc.): 43 ml (1.5 oz.) of 40% alcohol",
+  "WOMEN - How often do you drink alcohol? One standard drink of alcohol is equal to: Beer/Cider/Cooler: 341 ml (12 oz.) of 5% alcohol Wine: 142 ml (5 oz.) of 12% alcohol Spirits (rye, gin, rum, etc.): 43 ml (1.5 oz.) of 40% alcohol",
+  "MEN - How often do you drink alcohol? One standard drink of alcohol is equal to: Beer/Cider/Cooler: 341 ml (12 oz.) of 5% alcohol Wine: 142 ml (5 oz.) of 12% alcohol Spirits (rye, gin, rum, etc.): 43 ml (1.5 oz.) of 40% alcohol",
   "How often do you use cannabis products (of any kind)?",
   "What do you use cannabis for? Select all that apply",
   "Complete?",
@@ -202,13 +202,13 @@ colnames(SIMOA)[1:339] <- c(
   "Estimate how many years you have taken medications to help you sleep. If you have taken more than one type of sleeping pill you can add up the total time for your estimate.",
   "How did you attempt to stop taking the sleep medication?",
   "How did you stop taking the sleep medication?",
-  "Did you do any of the following when reducing your dose? Select all that apply. Splitting tablets (for example into 2 or 4 pieces) can be used to help you gradually reduce your dose over time. Some pharmacies can make a liquid formulation for the same purpose.",
-  "Did you do any of the following when reducing your dose? Select all that apply. Splitting tablets (for example into 2 or 4 pieces) can be used to help you gradually reduce your dose over time. Some pharmacies can make a liquid formulation for the same purpose.",
+  "ATTEMPT - Did you do any of the following when reducing your dose? Select all that apply. Splitting tablets (for example into 2 or 4 pieces) can be used to help you gradually reduce your dose over time. Some pharmacies can make a liquid formulation for the same purpose.",
+  "STOPPED - Did you do any of the following when reducing your dose? Select all that apply. Splitting tablets (for example into 2 or 4 pieces) can be used to help you gradually reduce your dose over time. Some pharmacies can make a liquid formulation for the same purpose.",
   "What was the longest period of time that you completely stopped taking your sleep medication (within the past 2 years)?",
-  "Which of the following 'withdrawal effects' did you experience when reducing the dose or fully stopping your sleep medication? Select all that apply: Insomnia: poor sleep or worsening sleep problems; Anxiety: feeling anxious, irritable, agitated, jittery, on edge, tense, worried, restless, racing thoughts; Other mental health effects: difficulty concentrating, depressed mood, memory problems, confusion; Physical effects: nausea, dizzy, unsteady, headaches, sweating, tremulous, shaky, pounding heart, sensitive to noise or light.",
-  "Which of the following 'withdrawal effects' did you experience when reducing the dose or fully stopping your sleep medication? Select all that apply: Insomnia: poor sleep or worsening sleep problems; Anxiety: feeling anxious, irritable, agitated, jittery, on edge, tense, worried, restless, racing thoughts; Other mental health effects: difficulty concentrating, depressed mood, memory problems, confusion; Physical effects: nausea, dizzy, unsteady, headaches, sweating, tremulous, shaky, pounding heart, sensitive to noise or light.",
-  "Were any of the following methods used when decreasing or stopping your sleeping pills? Select all that apply.",
-  "Were any of the following methods used when decreasing or stopping your sleeping pills? Select all that apply.",
+  ">1/MONTH - Which of the following 'withdrawal effects' did you experience when reducing the dose or fully stopping your sleep medication? Select all that apply: Insomnia: poor sleep or worsening sleep problems; Anxiety: feeling anxious, irritable, agitated, jittery, on edge, tense, worried, restless, racing thoughts; Other mental health effects: difficulty concentrating, depressed mood, memory problems, confusion; Physical effects: nausea, dizzy, unsteady, headaches, sweating, tremulous, shaky, pounding heart, sensitive to noise or light.",
+  "0 or <1/MONTH - Which of the following 'withdrawal effects' did you experience when reducing the dose or fully stopping your sleep medication? Select all that apply: Insomnia: poor sleep or worsening sleep problems; Anxiety: feeling anxious, irritable, agitated, jittery, on edge, tense, worried, restless, racing thoughts; Other mental health effects: difficulty concentrating, depressed mood, memory problems, confusion; Physical effects: nausea, dizzy, unsteady, headaches, sweating, tremulous, shaky, pounding heart, sensitive to noise or light.",
+  ">1/MONTH - Were any of the following methods used when decreasing or stopping your sleeping pills? Select all that apply.",
+  "0 or <1/MONTH - Were any of the following methods used when decreasing or stopping your sleeping pills? Select all that apply.",
   "Do you intend to completely stop using sleeping pills within the next year?",
   "Complete?",
   "Do you use any other medications or substances to help you sleep? Select all that apply",
@@ -412,10 +412,96 @@ SIMOA <- SIMOA[-1, ]
 
 ```
 
+```{r}
+#| label: Removing Columns w/out data
+## Here is the code I will use to remove the columns that do not hold any data 
+## that is important such as the consent time stamp and the "Complete?" columns 
+## as they do not provide information and simply take up space making the 
+## process of going through all the data more complex
+
+SIMOA <- SIMOA[, !colnames(SIMOA) %in% 
+                 c("Complete?", "Consent timestamp", "Survey Completion", "Survey start timestamp", 
+                   "Continue with survey? Thank you for your responses so far. You have completed 4 of 10 sections. Would you like to continue with the survey now or save your responses and come back later?",
+                   "Continue with survey? We really appreciate your participation and responses so far and understand that this is a very long survey. You just completed the longest section. The remaining survey sections are not nearly as long. Would you like to continue with the survey now or save your responses and come back later?")]
+
+```
+
+```{r}
+#| label: mean/sd for age (All Respondents)
+## This is the code I used to calculate the mean and sd for the age column of 
+## the SIMOA sample. The first line here converts the blank columns to NA which 
+## allows the rest of the analysis to proceed. NOTE: R will not calculate a mean 
+## if you do not do this because it is unsure how to handle missing data. The 
+## seocnd line converts the column to numeric data so other tests can be ran. 
+## The line after that is used to make sure the data class has changed to 
+## numeric successfully. The next line is used to get the mean age for my sample 
+## and the na.rm = TRUE which essentially makes R calculate the mean of that 
+## column without counting the columns with an "NA" from the previous line. The 
+## next line calculates the sd for the age data again using the na.rm = TRUE 
+## function in order to only count the rows with data. Finally, I am looking for 
+## the number of people R used in calculating the mean and sd. 
+
+NA -> SIMOA$`What is your age?`[SIMOA$`What is your age?` == ""]
+SIMOA$`What is your age?` <- as.numeric(SIMOA$`What is your age?`)
+class(SIMOA$`What is your age?`)
+AGE_mean<- mean(SIMOA$`What is your age?`, na.rm = TRUE)
+AGE_sd <- sd(SIMOA$`What is your age?`, na.rm = TRUE)
+AGE_N <- sum(!is.na(SIMOA$`What is your age?`))
+
+## Below the code will print the results rather than having to look through the 
+## objects. However, all of these values will be in the environment and I will
+## not code over previous objects. But printing the information makes it easier
+## to find. 
+print(AGE_mean)
+print(AGE_sd)
+cat("N =", AGE_N, "\n")
+
+```
+
+```{r}
+#| label: Sex Stats (All Respondents)
+SEX <- table(SIMOA$`What is your sex?`)
+
+# Print the frequency table
+print(SEX)
+
+## Extract the count for 'male' from the table. It also prints the number and 
+## finds the % female
+SEX_M <- SEX["Male"]
+SEX_F <- SEX["Female"]
+print(SEX_M)
+print(SEX_F)
+
+FEMALE_PERCENT <- (((AGE_N / SEX_F)-1)*100)
+print(FEMALE_PERCENT)
+```
+
+```{r}
+#|label: Gender Stats (All Respondents)
+# Get a frequency table for the 'Gender' column
+GENDER <- table(SIMOA$`What is your gender identity?`)
+
+# Print the frequency table
+print(GENDER)
+
+## Extract the count for 'Man' from the table. It also prints the number and 
+## finds the % female
+GENDER_M <- GENDER["Man"]
+GENDER_F <- GENDER["Woman"]
+GENDER_NB <- GENDER["Non-binary"]
+print(GENDER_M)
+print(GENDER_F)
+print(GENDER_NB)
+
+WOMAN_PERCENT <- (((513 / GENDER_F)-1)*100)
+print(WOMAN_PERCENT)
 
 
+```
 
+```{r}
 
+```
 
 
 

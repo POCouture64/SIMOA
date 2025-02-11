@@ -21,6 +21,7 @@ myself for publication, or reviewers/MSc committee for confirmation of results.
 
 ```{r}
 #| label: Installing Packages
+#| include: false
 # Here I will include all the code I need to install the packages I need to 
 # conduct my analysis. I will keep adding to this throughout my coding.
 
@@ -31,12 +32,18 @@ install.packages("tidyverse")
 
 ```{r}
 #| label: Calling in the packages
+#| include: false
 # Here I will include all the code to call in the packages I have installed. 
 # Again, I will update this everytime I need to call-in a new package throughout
 # my coding.
 
+library(readxl)
+library(data.table)
+library(dplyr)
+library(tidyverse)
 
 ```
+
 
 
 

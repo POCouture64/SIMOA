@@ -55,10 +55,6 @@ View(SIMOA)
 #| label: Rename all the columns of data
 ## Renaming all the columns to change them from a ...# format to meaningful text 
 ## to allow me to better keep track of the variables I am using in the analysis
-### An important note is that Q48 and 49 appear to be the same so I will confirm
-### with Dr. Gardner if we should combine the questions into 1 as people do not
-### appear to have answered both. Or if they are separate for a specific reason
-### if they are, make sure to be clear why they are distinct. 
 
 colnames(SIMOA)[1:339] <- c(
   "Record ID",
@@ -455,17 +451,17 @@ AR_demo <- SIMOA %>%
   )
 
 # Calculate mean and standard deviation of age (only for those who provided an age)
-mean_age <- mean(N_AR$`What is your age?`, na.rm = TRUE)
-sd_age <- sd(N_AR$`What is your age?`, na.rm = TRUE)
+AR_mean_age <- mean(N_AR$`What is your age?`, na.rm = TRUE)
+AR_sd_age <- sd(N_AR$`What is your age?`, na.rm = TRUE)
 
 # Count the number of included participants
-n_people <- nrow(N_AR)
+AR_n_people <- nrow(N_AR)
 
 # Output the results
 list(
-  mean_age = mean_age,
-  sd_age = sd_age,
-  n_people = n_people
+  AR_mean_age = mean_age,
+  AR_sd_age = sd_age,
+  AR_n_people = n_people
 )
 
 ```
@@ -639,9 +635,40 @@ print(OSSS_3_score)
 ## Demographic Data (STOPPED)
 
 ```{r}
+#| label: Creating New Object for Those Who Stopped
+# The object 'STOPPED_demo' contains all people that meet our new inclusion criteria. Keep calling this object rather than doing the filter calculations everytime.
+
+STOPPED_demo <- SIMOA %>%
+  filter(
+    # Age conditions
+    (`What is your age?` >= 65 & !is.na(`What is your age?`)) | 
+    (`Are you 65 or older?` == "Yes"),
+    # Sleeping pill question condition
+    !is.na(`Which of the listed prescription sleeping pills have you taken 'regularly' in the past two (2) years?`),
+    # New condition for 'Stopped taking these medications? Yes or No'
+    `Stopped taking these medications? Yes or No` == "Yes"
+  )
 
 ```
 
+```{r}
+#| label: M/sd/N for age (STOPPED)
+
+# Calculate mean and standard deviation of age (only for those who provided an age)
+STOPPED_mean_age <- mean(STOPPED_demo$`What is your age?`, na.rm = TRUE)
+STOPPED_sd_age <- sd(STOPPED_demo$`What is your age?`, na.rm = TRUE)
+
+# Count the number of included participants
+STOPPED_n_people <- nrow(STOPPED_demo)
+
+# Output the results
+list(
+  STOPPED_mean_age = STOPPED_mean_age,
+  STOPPED_sd_age = STOPPED_sd_age,
+  STOPPED_n_people = STOPPED_n_people
+)
+
+```
 
 
 

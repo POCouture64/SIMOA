@@ -443,7 +443,8 @@ sleep such as antihistamines, melatonin, or others.
 SIMOA$`What is your age?` <- as.numeric(SIMOA$`What is your age?`)
 
 # Filter the dataset based on the given conditions
-M/SD/N_AR <- SIMOA %>%
+# The object 'AR_demo' contains all people that meet our new inclusion criteria. Keep calling this object rather than doing the filter calculations everytime.
+AR_demo <- SIMOA %>%
   filter(
     # Include if age is provided and ≥ 65
     (`What is your age?` >= 65 & !is.na(`What is your age?`)) | 
@@ -475,19 +476,8 @@ list(
 # Ensure age is numeric
 SIMOA$`What is your age?` <- as.numeric(SIMOA$`What is your age?`)
 
-# Apply filters
-Sex_AR <- SIMOA %>%
-  filter(
-    (`What is your age?` >= 65 & !is.na(`What is your age?`)) | 
-    (`Are you 65 or older?` == "Yes"),
-    !is.na(`Which of the listed prescription sleeping pills have you taken 'regularly' in the past two (2) years?`)
-  )
-
-# Check if any rows remain
-print(nrow(Sex_AR))  # Debugging step
-
 # Count number of males and females
-sex_breakdown <- Sex_AR %>%
+sex_breakdown <- AR_demo %>%
   group_by(`What is your sex?`) %>%
   summarise(n = n(), .groups = "drop")
 
@@ -510,26 +500,14 @@ list(
 )
 ```
 
-
 ```{r}
 #|label: Gender Stats (All Respondents)
 
 # Ensure age is numeric
 SIMOA$`What is your age?` <- as.numeric(SIMOA$`What is your age?`)
 
-# Apply filters
-Gender_AR <- SIMOA %>%
-  filter(
-    (`What is your age?` >= 65 & !is.na(`What is your age?`)) | 
-    (`Are you 65 or older?` == "Yes"),
-    !is.na(`Which of the listed prescription sleeping pills have you taken 'regularly' in the past two (2) years?`)
-  )
-
-# Check if any rows remain after filtering
-print(nrow(Gender_AR))  # Debugging step
-
 # Count number of each gender identity
-AR_gender_breakdown <- Gender_AR %>%
+AR_gender_breakdown <- AR_demo %>%
   group_by(`What is your gender identity?`) %>%
   summarise(n = n(), .groups = "drop")
 
@@ -558,12 +536,21 @@ list(
 ```
 
 ```{r}
-#|label: Province of Residence
+#|label: Province of Residence (All Respondents)
+# This is the code used to determine the number of responses each province received from the elegible participants.
 
+province_counts <- AR_demo %>%
+  group_by(`Select the province or territory in which you currently live.`) %>%
+  summarise(count = n(), .groups = "drop")
 
+# View the result
+print(province_counts)
 
 ```
 
+```{r}
+
+```
 
 
 

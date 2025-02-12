@@ -438,33 +438,28 @@ sleep such as antihistamines, melatonin, or others.
 
 ```{r}
 #| label: mean/sd for age (All Respondents)
-## This is the code I used to calculate the mean and sd for the age column of 
-## the SIMOA sample. The first line here converts the blank columns to NA which 
-## allows the rest of the analysis to proceed. NOTE: R will not calculate a mean 
-## if you do not do this because it is unsure how to handle missing data. The 
-## seocnd line converts the column to numeric data so other tests can be ran. 
-## The line after that is used to make sure the data class has changed to 
-## numeric successfully. The next line is used to get the mean age for my sample 
-## and the na.rm = TRUE which essentially makes R calculate the mean of that 
-## column without counting the columns with an "NA" from the previous line. The 
-## next line calculates the sd for the age data again using the na.rm = TRUE 
-## function in order to only count the rows with data. Finally, I am looking for 
-## the number of people R used in calculating the mean and sd. 
 
-NA -> SIMOA$`What is your age?`[SIMOA$`What is your age?` == ""]
+# Ensure the 'What is your age?' column is numeric (in case it's not already)
 SIMOA$`What is your age?` <- as.numeric(SIMOA$`What is your age?`)
-class(SIMOA$`What is your age?`)
-AGE_mean<- mean(SIMOA$`What is your age?`, na.rm = TRUE)
-AGE_sd <- sd(SIMOA$`What is your age?`, na.rm = TRUE)
-AGE_N <- sum(!is.na(SIMOA$`What is your age?`))
 
-## Below the code will print the results rather than having to look through the 
-## objects. However, all of these values will be in the environment and I will
-## not code over previous objects. But printing the information makes it easier
-## to find. 
-print(AGE_mean)
-print(AGE_sd)
-cat("N =", AGE_N, "\n")
+# Filter the data to include only people who are ≥65 and answered the sleeping pill question
+AVG_AGE_AR <- SIMOA %>%
+  filter(
+    `What is your age?` >= 65 & !is.na(`What is your age?`) & 
+    !is.na(`Which of the listed prescription sleeping pills have you taken 'regularly' in the past two (2) years?`)
+  )
+
+# Calculate mean, standard deviation, and the number of people
+mean_age <- mean(AVG_AGE_AR$`What is your age?`, na.rm = TRUE)
+sd_age <- sd(AVG_AGE_AR$`What is your age?`, na.rm = TRUE)
+n_people <- nrow(AVG_AGE_AR)
+
+# Output the results
+list(
+  mean_age = mean_age,
+  sd_age = sd_age,
+  n_people = n_people
+)
 
 ```
 
@@ -510,6 +505,8 @@ print(WOMAN_PERCENT)
 ```
 
 ```{r}
+
+
 
 ```
 

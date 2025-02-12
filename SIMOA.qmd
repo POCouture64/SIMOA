@@ -549,6 +549,96 @@ print(province_counts)
 ```
 
 ```{r}
+#|label: Highest Education Completed (All Respondents)
+# This is the code used to determine the number of responses of each educational level completed from the elegible participants. 
+
+complete_education <- AR_demo %>%
+  group_by(`What is the highest level of education you completed?`) %>%
+  summarise(count = n(), .groups = "drop")
+
+# View the result
+print(complete_education)
+
+```
+
+```{r}
+#|label: Employment Status (All Respondents)
+# This is the code used to determine the number of responses of each educational level completed from the elegible participants. 
+
+employment <- AR_demo %>%
+  group_by(`What is your employment status?`) %>%
+  summarise(count = n(), .groups = "drop")
+
+# View the result
+print(employment)
+
+```
+
+```{r}
+#|label: Driving Frequency (All Respondents)
+# This is the code used to determine the number of responses of how often they drive completed from the elegible participants. 
+drive_freq <- AR_demo %>%
+  group_by(`How often do you drive?`) %>%
+  summarise(count = n(), .groups = "drop")
+
+# View the result
+print(drive_freq)
+
+```
+
+```{r}
+#|label: Household Income (All Respondents)
+# This is the code used to determine the number of responses for their level of household income completed from the elegible participants. 
+
+household_income <- AR_demo %>%
+  group_by(`Which category matches your annual household income?`) %>%
+  summarise(count = n(), .groups = "drop")
+
+# View the result
+print(household_income)
+
+```
+
+```{r}
+#|label: People They Live With (All Respondents)
+# This is the code used to determine the number of responses of who they currently live with completed from the elegible participants. 
+
+live_with <- AR_demo %>%
+  group_by(`With whom do you currently live? Select all that apply.`) %>%
+  summarise(count = n(), .groups = "drop")
+
+# View the result
+print(live_with)
+
+```
+
+```{r}
+#|label: OSSS-3 Total Score with Qualitative Markers
+# This code calculates the count of each OSSS-3 score and assigns qualitative markers.
+
+OSSS_3_score <- AR_demo %>%
+  # Ensure OSSS-3_score is numeric
+  mutate(`OSSS-3_score` = as.numeric(`OSSS-3_score`)) %>%
+  group_by(`OSSS-3_score`) %>%
+  summarise(count = n(), .groups = "drop") %>%
+  mutate(
+    support_level = case_when(
+      `OSSS-3_score` >= 3 & `OSSS-3_score` <= 8 ~ "Poor Support",
+      `OSSS-3_score` >= 9 & `OSSS-3_score` <= 11 ~ "Moderate Support",
+      `OSSS-3_score` >= 12 & `OSSS-3_score` <= 14 ~ "Strong Support",
+      TRUE ~ "Other"  # This will capture any score outside the defined ranges
+    )
+  )
+
+# View the result
+print(OSSS_3_score)
+
+```
+
+
+## Demographic Data (STOPPED)
+
+```{r}
 
 ```
 

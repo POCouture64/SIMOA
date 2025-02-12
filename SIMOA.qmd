@@ -437,22 +437,28 @@ really using BZRAs rather than other medications which can have an impact on
 sleep such as antihistamines, melatonin, or others. 
 
 ```{r}
-#| label: mean/sd for age (All Respondents)
+#|label: mean/sd and N for age (All Respondents)
 
-# Ensure the 'What is your age?' column is numeric (in case it's not already)
+# Ensure the age column is numeric (to avoid issues with non-numeric values)
 SIMOA$`What is your age?` <- as.numeric(SIMOA$`What is your age?`)
 
-# Filter the data to include only people who are ≥65 and answered the sleeping pill question
-AVG_AGE_AR <- SIMOA %>%
+# Filter the dataset based on the given conditions
+M/SD/N_AR <- SIMOA %>%
   filter(
-    `What is your age?` >= 65 & !is.na(`What is your age?`) & 
+    # Include if age is provided and ≥ 65
+    (`What is your age?` >= 65 & !is.na(`What is your age?`)) | 
+    # OR if they answered "Yes" to being 65+
+    (`Are you 65 or older?` == "Yes"),
+    # AND they answered the sleeping pill question
     !is.na(`Which of the listed prescription sleeping pills have you taken 'regularly' in the past two (2) years?`)
   )
 
-# Calculate mean, standard deviation, and the number of people
-mean_age <- mean(AVG_AGE_AR$`What is your age?`, na.rm = TRUE)
-sd_age <- sd(AVG_AGE_AR$`What is your age?`, na.rm = TRUE)
-n_people <- nrow(AVG_AGE_AR)
+# Calculate mean and standard deviation of age (only for those who provided an age)
+mean_age <- mean(N_AR$`What is your age?`, na.rm = TRUE)
+sd_age <- sd(N_AR$`What is your age?`, na.rm = TRUE)
+
+# Count the number of included participants
+n_people <- nrow(N_AR)
 
 # Output the results
 list(
@@ -465,47 +471,94 @@ list(
 
 ```{r}
 #| label: Sex Stats (All Respondents)
-SEX <- table(SIMOA$`What is your sex?`)
 
-# Print the frequency table
-print(SEX)
+# Ensure age is numeric
+SIMOA$`What is your age?` <- as.numeric(SIMOA$`What is your age?`)
 
-## Extract the count for 'male' from the table. It also prints the number and 
-## finds the % female
-SEX_M <- SEX["Male"]
-SEX_F <- SEX["Female"]
-print(SEX_M)
-print(SEX_F)
+# Apply filters
+Sex_AR <- SIMOA %>%
+  filter(
+    (`What is your age?` >= 65 & !is.na(`What is your age?`)) | 
+    (`Are you 65 or older?` == "Yes"),
+    !is.na(`Which of the listed prescription sleeping pills have you taken 'regularly' in the past two (2) years?`)
+  )
 
-FEMALE_PERCENT <- (((AGE_N / SEX_F)-1)*100)
-print(FEMALE_PERCENT)
+# Check if any rows remain
+print(nrow(Sex_AR))  # Debugging step
+
+# Count number of males and females
+sex_breakdown <- Sex_AR %>%
+  group_by(`What is your sex?`) %>%
+  summarise(n = n(), .groups = "drop")
+
+# Extract values safely
+AR_n_female <- sex_breakdown$n[sex_breakdown$`What is your sex?` == "Female"]
+AR_n_male <- sex_breakdown$n[sex_breakdown$`What is your sex?` == "Male"]
+
+# Handle missing values
+AR_n_female <- ifelse(length(AR_n_female) == 0, 0, AR_n_female)
+AR_n_male <- ifelse(length(AR_n_male) == 0, 0, AR_n_male)
+
+# Calculate % Female
+AR_percent_female <- ifelse((AR_n_female + AR_n_male) > 0, (AR_n_female / (AR_n_female + AR_n_male)) * 100, NA)
+
+# Output results
+list(
+  AR_n_female = AR_n_female,
+  AR_n_male = AR_n_male,
+  AR_percent_female = AR_percent_female
+)
 ```
+
 
 ```{r}
 #|label: Gender Stats (All Respondents)
-# Get a frequency table for the 'Gender' column
-GENDER <- table(SIMOA$`What is your gender identity?`)
 
-# Print the frequency table
-print(GENDER)
+# Ensure age is numeric
+SIMOA$`What is your age?` <- as.numeric(SIMOA$`What is your age?`)
 
-## Extract the count for 'Man' from the table. It also prints the number and 
-## finds the % female
-GENDER_M <- GENDER["Man"]
-GENDER_F <- GENDER["Woman"]
-GENDER_NB <- GENDER["Non-binary"]
-print(GENDER_M)
-print(GENDER_F)
-print(GENDER_NB)
+# Apply filters
+Gender_AR <- SIMOA %>%
+  filter(
+    (`What is your age?` >= 65 & !is.na(`What is your age?`)) | 
+    (`Are you 65 or older?` == "Yes"),
+    !is.na(`Which of the listed prescription sleeping pills have you taken 'regularly' in the past two (2) years?`)
+  )
 
-WOMAN_PERCENT <- (((513 / GENDER_F)-1)*100)
-print(WOMAN_PERCENT)
+# Check if any rows remain after filtering
+print(nrow(Gender_AR))  # Debugging step
 
+# Count number of each gender identity
+AR_gender_breakdown <- Gender_AR %>%
+  group_by(`What is your gender identity?`) %>%
+  summarise(n = n(), .groups = "drop")
+
+# Extract values safely
+AR_n_woman <- AR_gender_breakdown$n[AR_gender_breakdown$`What is your gender identity?` == "Woman"]
+AR_n_man <- AR_gender_breakdown$n[AR_gender_breakdown$`What is your gender identity?` == "Man"]
+AR_n_nonbinary <- AR_gender_breakdown$n[AR_gender_breakdown$`What is your gender identity?` == "Non-binary"]
+
+# Handle missing values
+AR_n_woman <- ifelse(length(AR_n_woman) == 0, 0, AR_n_woman)
+AR_n_man <- ifelse(length(AR_n_man) == 0, 0, AR_n_man)
+AR_n_nonbinary <- ifelse(length(AR_n_nonbinary) == 0, 0, AR_n_nonbinary)
+
+# Calculate % Woman
+AR_percent_woman <- ifelse((AR_n_woman + AR_n_man + AR_n_nonbinary) > 0, 
+                        (AR_n_woman / (AR_n_woman + AR_n_man + AR_n_nonbinary)) * 100, NA)
+
+# Output results
+list(
+  AR_n_woman = AR_n_woman,
+  AR_n_man = AR_n_man,
+  AR_n_nonbinary = AR_n_nonbinary,
+  AR_percent_woman = AR_percent_woman
+)
 
 ```
 
 ```{r}
-
+#|label: 
 
 
 ```

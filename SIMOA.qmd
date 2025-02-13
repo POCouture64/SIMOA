@@ -1050,6 +1050,17 @@ print(USING_OSSS_3_score)
 
 ```
 
+## Independent Samples t-test for Demographics
+
+Below I will include all the code I used to calculate the difference between the 
+people who reported having stopped using BZRAs and those who did not. This will
+be used for Table 1 to see if the groups are different from each other which may
+limit the conclusions we are able to draw from the research and could impact the 
+amount of power through all our analyses. 
+
+```{r}
+
+```
 
 
 

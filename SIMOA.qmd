@@ -473,13 +473,13 @@ list(
 SIMOA$`What is your age?` <- as.numeric(SIMOA$`What is your age?`)
 
 # Count number of males and females
-sex_breakdown <- AR_demo %>%
+AR_sex_breakdown <- AR_demo %>%
   group_by(`What is your sex?`) %>%
   summarise(n = n(), .groups = "drop")
 
 # Extract values safely
-AR_n_female <- sex_breakdown$n[sex_breakdown$`What is your sex?` == "Female"]
-AR_n_male <- sex_breakdown$n[sex_breakdown$`What is your sex?` == "Male"]
+AR_n_female <- AR_sex_breakdown$n[AR_sex_breakdown$`What is your sex?` == "Female"]
+AR_n_male <- AR_sex_breakdown$n[AR_sex_breakdown$`What is your sex?` == "Male"]
 
 # Handle missing values
 AR_n_female <- ifelse(length(AR_n_female) == 0, 0, AR_n_female)
@@ -667,6 +667,180 @@ list(
   STOPPED_sd_age = STOPPED_sd_age,
   STOPPED_n_people = STOPPED_n_people
 )
+
+```
+
+```{r}
+#| label: Sex Stats (STOPPED)
+
+# Count number of males and females
+STOPPED_sex_breakdown <- STOPPED_demo %>%
+  group_by(`What is your sex?`) %>%
+  summarise(n = n(), .groups = "drop")
+
+# Extract values safely
+STOPPED_n_female <- STOPPED_sex_breakdown$n[STOPPED_sex_breakdown$`What is your sex?` == "Female"]
+STOPPED_n_male <- STOPPED_sex_breakdown$n[STOPPED_sex_breakdown$`What is your sex?` == "Male"]
+
+# Handle missing values
+STOPPED_n_female <- ifelse(length(STOPPED_n_female) == 0, 0, STOPPED_n_female)
+STOPPED_n_male <- ifelse(length(STOPPED_n_male) == 0, 0, STOPPED_n_male)
+
+# Calculate % Female
+STOPPED_percent_female <- ifelse((STOPPED_n_female + STOPPED_n_male) > 0, (STOPPED_n_female / (STOPPED_n_female + STOPPED_n_male)) * 100, NA)
+
+# Output results
+list(
+  STOPPED_n_female = STOPPED_n_female,
+  STOPPED_n_male = STOPPED_n_male,
+  STOPPED_percent_female = STOPPED_percent_female
+)
+
+```
+
+```{r}
+#| label: Gender Stats (STOPPED)
+# Count number of each gender identity, treating NA as "Not Specified"
+STOPPED_gender_breakdown <- STOPPED_demo %>%
+  mutate(
+    `What is your gender identity?` = case_when(
+      is.na(`What is your gender identity?`) ~ "Not Specified",  # Treat NA as "Not Specified"
+      TRUE ~ `What is your gender identity?`  # Keep other values as is
+    )
+  ) %>%
+  group_by(`What is your gender identity?`) %>%
+  summarise(n = n(), .groups = "drop")
+
+# Check the summary of gender identities (to look for any unexpected values)
+print(STOPPED_gender_breakdown)
+
+# Extract values safely
+STOPPED_n_woman <- STOPPED_gender_breakdown$n[STOPPED_gender_breakdown$`What is your gender identity?` == "Woman"]
+STOPPED_n_man <- STOPPED_gender_breakdown$n[STOPPED_gender_breakdown$`What is your gender identity?` == "Man"]
+STOPPED_n_nonbinary <- STOPPED_gender_breakdown$n[STOPPED_gender_breakdown$`What is your gender identity?` == "Non-binary"]
+STOPPED_n_not_specified <- STOPPED_gender_breakdown$n[STOPPED_gender_breakdown$`What is your gender identity?` == "Not Specified"]
+
+# Handle missing values
+STOPPED_n_woman <- ifelse(length(STOPPED_n_woman) == 0, 0, STOPPED_n_woman)
+STOPPED_n_man <- ifelse(length(STOPPED_n_man) == 0, 0, STOPPED_n_man)
+STOPPED_n_nonbinary <- ifelse(length(STOPPED_n_nonbinary) == 0, 0, STOPPED_n_nonbinary)
+STOPPED_n_not_specified <- ifelse(length(STOPPED_n_not_specified) == 0, 0, STOPPED_n_not_specified)
+
+# Calculate total
+STOPPED_total <- STOPPED_n_woman + STOPPED_n_man + STOPPED_n_nonbinary + STOPPED_n_not_specified
+
+# Calculate percentage of women in the sample
+STOPPED_percent_woman <- ifelse(STOPPED_total > 0, (STOPPED_n_woman / STOPPED_total) * 100, NA)
+
+# Output results
+list(
+  STOPPED_n_woman = STOPPED_n_woman,
+  STOPPED_n_man = STOPPED_n_man,
+  STOPPED_n_nonbinary = STOPPED_n_nonbinary,
+  STOPPED_n_not_specified = STOPPED_n_not_specified,
+  STOPPED_percent_woman = STOPPED_percent_woman,
+  STOPPED_total = STOPPED_total
+)
+
+```
+
+```{r}
+#|label: Province of Residence (STOPPED)
+# This is the code used to determine the number of responses each province received from the elegible participants who stopped taking BZRAs.
+
+STOPPED_province_counts <- STOPPED_demo %>%
+  group_by(`Select the province or territory in which you currently live.`) %>%
+  summarise(count = n(), .groups = "drop")
+
+# View the result
+print(STOPPED_province_counts)
+
+```
+
+```{r}
+#|label: Highest Education Completed (STOPPED)
+# This is the code used to determine the number of responses of each educational level completed from the elegible participants. 
+
+STOPPED_complete_education <- STOPPED_demo %>%
+  group_by(`What is the highest level of education you completed?`) %>%
+  summarise(count = n(), .groups = "drop")
+
+# View the result
+print(STOPPED_complete_education)
+
+```
+
+```{r}
+#|label: Employment Status (STOPPED)
+# This is the code used to determine the number of responses of each educational level completed from the elegible participants. 
+
+STOPPED_employment <- STOPPED_demo %>%
+  group_by(`What is your employment status?`) %>%
+  summarise(count = n(), .groups = "drop")
+
+# View the result
+print(STOPPED_employment)
+
+```
+
+```{r}
+#|label: Driving Frequency (STOPPED)
+# This is the code used to determine the number of responses of how often they drive completed from the elegible participants. 
+STOPPED_drive_freq <- STOPPED_demo %>%
+  group_by(`How often do you drive?`) %>%
+  summarise(count = n(), .groups = "drop")
+
+# View the result
+print(STOPPED_drive_freq)
+
+```
+
+```{r}
+#|label: Household Income (STOPPED)
+# This is the code used to determine the number of responses for their level of household income completed from the elegible participants. 
+
+STOPPED_household_income <- STOPPED_demo %>%
+  group_by(`Which category matches your annual household income?`) %>%
+  summarise(count = n(), .groups = "drop")
+
+# View the result
+print(STOPPED_household_income)
+
+```
+
+```{r}
+#|label: People They Live With (STOPPED)
+# This is the code used to determine the number of responses of who they currently live with completed from the elegible participants. 
+
+STOPPED_live_with <- STOPPED_demo %>%
+  group_by(`With whom do you currently live? Select all that apply.`) %>%
+  summarise(count = n(), .groups = "drop")
+
+# View the result
+print(STOPPED_live_with)
+
+```
+
+```{r}
+#|label: OSSS-3 Total Score with Qualitative Markers
+# This code calculates the count of each OSSS-3 score and assigns qualitative markers.
+
+STOPPED_OSSS_3_score <- STOPPED_demo %>%
+  # Ensure OSSS-3_score is numeric
+  mutate(`OSSS-3_score` = as.numeric(`OSSS-3_score`)) %>%
+  group_by(`OSSS-3_score`) %>%
+  summarise(count = n(), .groups = "drop") %>%
+  mutate(
+    support_level = case_when(
+      `OSSS-3_score` >= 3 & `OSSS-3_score` <= 8 ~ "Poor Support",
+      `OSSS-3_score` >= 9 & `OSSS-3_score` <= 11 ~ "Moderate Support",
+      `OSSS-3_score` >= 12 & `OSSS-3_score` <= 14 ~ "Strong Support",
+      TRUE ~ "Other"  # This will capture any score outside the defined ranges
+    )
+  )
+
+# View the result
+print(STOPPED_OSSS_3_score)
 
 ```
 

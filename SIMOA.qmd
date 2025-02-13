@@ -1059,6 +1059,17 @@ limit the conclusions we are able to draw from the research and could impact the
 amount of power through all our analyses. 
 
 ```{r}
+#|label: Comparing Age
+
+# Shapiro-Wilk normality test for Group 1 (STOPPED)
+shapiro.test(STOPPED_demo$`What is your age?`)
+
+# Shapiro-Wilk normality test for Group 2 (USING)
+shapiro.test(USING_demo$`What is your age?`)
+
+# Mann-Whitney U test (non-parametric)
+wilcox.test(STOPPED_demo$`What is your age?`, USING_demo$`What is your age?`)
+
 
 ```
 

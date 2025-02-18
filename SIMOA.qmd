@@ -844,6 +844,28 @@ print(STOPPED_OSSS_3_score)
 
 ```
 
+```{r}
+#| label: PHQ-2 Total Score with Qualitative Markers (STOPPED)
+
+STOPPED_PHQ_2_score <- STOPPED_demo %>%
+  # Ensure PHQ_2_score is numeric
+  mutate(`PHQ_2_score` = as.numeric(`PHQ_2_score`)) %>%
+  group_by(`PHQ_2_score`) %>%
+  summarise(count = n(), .groups = "drop") %>%
+  mutate(
+    depression_level = case_when(
+      `PHQ_2_score` >= 3 ~ "High Depressive Symptoms",
+      `PHQ_2_score` >= 0 & `PHQ_2_score` <= 2 ~ "No/Mild Depressive Symptoms",
+      TRUE ~ "Other"  # Captures unexpected values if any
+    )
+  )
+
+# View the result
+print(STOPPED_PHQ_2_score)
+
+```
+
+
 ## Demographic Data (USING)
 
 ```{r}
@@ -1047,6 +1069,27 @@ USING_OSSS_3_score <- USING_demo %>%
 
 # View the result
 print(USING_OSSS_3_score)
+
+```
+
+```{r}
+#| label: PHQ-2 Total Score with Qualitative Markers (USING)
+
+USING_PHQ_2_score <- USING_demo %>%
+  # Ensure PHQ_2_score is numeric
+  mutate(`PHQ_2_score` = as.numeric(`PHQ_2_score`)) %>%
+  group_by(`PHQ_2_score`) %>%
+  summarise(count = n(), .groups = "drop") %>%
+  mutate(
+    depression_level = case_when(
+      `PHQ_2_score` >= 3 ~ "High Depressive Symptoms",
+      `PHQ_2_score` >= 0 & `PHQ_2_score` <= 2 ~ "No/Mild Depressive Symptoms",
+      TRUE ~ "Other"  # Captures unexpected values if any
+    )
+  )
+
+# View the result
+print(USING_PHQ_2_score)
 
 ```
 

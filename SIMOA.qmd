@@ -30,6 +30,7 @@ library(readxl)
 library(data.table)
 library(dplyr)
 library(tidyverse)
+library(stringr)
 
 ```
 
@@ -1117,10 +1118,418 @@ wilcox.test(STOPPED_demo$`What is your age?`, USING_demo$`What is your age?`)
 ```
 
 
+## Personality Calculations (ALL RESPONDENTS)
+
+This is the code I will use to create columns for a total score for each subsection of each personality measure including the DBAS-16, BFI-10, SUPRS, and CISS-21. I will create a score for each measure according to their scoring requirements and I will use their qualitative headings when appropriate.
+
+```{r}
+#| label: Creating A new object for the personality measures (ALL RESPONDENTS)
+
+AR_personality <- SIMOA %>%
+  filter(
+    # Include if age is provided and ≥ 65
+    (`What is your age?` >= 65 & !is.na(`What is your age?`)) | 
+    # OR if they answered "Yes" to being 65+
+    (`Are you 65 or older?` == "Yes"),
+    # AND they answered the sleeping pill question
+    !is.na(`Which of the listed prescription sleeping pills have you taken 'regularly' in the past two (2) years?`)
+  )
+
+```
+
+```{r}
+#| label: DBAS-16 subscale scoring (ALL RESPONDENTS)
+
+# Convert DBAS-16 responses to numeric values
+AR_DBAS_16_subscales <- AR_personality %>%
+  mutate(across(
+    c(
+      "I need 8 hours of sleep to feel refreshed and function well during the day.",
+      "When I don't get the proper amount of sleep on a given night, I need to catch up the next day by napping or on the next night by sleeping longer."
+    ), ~ as.numeric(str_extract(., "\\d+")), .names = "Expectations_{.col}")) %>%
+  
+  mutate(across(
+    c(
+      "After a poor night's sleep, I know that it will interfere with my daily activities the next day.",
+      "When I feel irritable, depressed, or anxious during the day, it is mostly because I did not sleep well the night before.",
+      "Without an adequate night's sleep, I can hardly function the next day.",
+      "When I feel tired, have no energy, or just seem not to function well during the day, it is generally because I did not sleep well the night before.",
+      "I avoid or cancel obligations (social, family) after a poor night's sleep."
+    ), ~ as.numeric(str_extract(., "\\d+")), .names = "Consequences_{.col}")) %>%
+  
+  mutate(across(
+    c(
+      "I am concerned that chronic insomnia may have serious consequences on my physical health.",
+      "I am worried that I may lose control over my abilities to sleep.",
+      "When I sleep poorly on one night, I know it will disturb my sleep schedule for the whole week.",
+      "I can't ever predict whether I'll have a good or poor night's sleep.",
+      "I have little ability to manage the negative consequences of disturbed sleep.",
+      "I feel insomnia is ruining my ability to enjoy life and prevents me from doing what I want."
+    ), ~ as.numeric(str_extract(., "\\d+")), .names = "Worry_Helplessness_{.col}")) %>%
+  
+  mutate(across(
+    c(
+      "In order to be alert and function well during the day, I believe I would be better off taking a sleeping pill rather than having a poor night's sleep.",
+      "I believe insomnia is essentially the result of a chemical imbalance.",
+      "Medication is probably the only solution to sleeplessness."
+    ), ~ as.numeric(str_extract(., "\\d+")), .names = "Medication_{.col}"))
+
+# Calculate the subscale averages and standard deviations, ensuring valid responses for each question
+AR_DBAS_16_avg_sd_n <- AR_DBAS_16_subscales %>%
+  mutate(
+    Expectations_N = rowSums(!is.na(select(., starts_with("Expectations_")))),
+    Consequences_N = rowSums(!is.na(select(., starts_with("Consequences_")))),
+    Worry_Helplessness_N = rowSums(!is.na(select(., starts_with("Worry_Helplessness_")))),
+    Medication_N = rowSums(!is.na(select(., starts_with("Medication_"))))
+  ) %>%
+  
+  # Only keep rows where all questions in the subscale have valid responses (N = number of complete responses)
+  filter(
+    Expectations_N == 2,  # 2 questions in the Expectations subscale
+    Consequences_N == 5,  # 5 questions in the Consequences subscale
+    Worry_Helplessness_N == 6,  # 6 questions in the Worry_Helplessness subscale
+    Medication_N == 3  # 3 questions in the Medication subscale
+  ) %>%
+  
+  summarise(
+    Expectations_Avg = mean(c_across(starts_with("Expectations_")), na.rm = TRUE),
+    Expectations_SD = sd(c_across(starts_with("Expectations_")), na.rm = TRUE),
+    Expectations_N = n(),
+    
+    Consequences_Avg = mean(c_across(starts_with("Consequences_")), na.rm = TRUE),
+    Consequences_SD = sd(c_across(starts_with("Consequences_")), na.rm = TRUE),
+    Consequences_N = n(),
+    
+    Worry_Helplessness_Avg = mean(c_across(starts_with("Worry_Helplessness_")), na.rm = TRUE),
+    Worry_Helplessness_SD = sd(c_across(starts_with("Worry_Helplessness_")), na.rm = TRUE),
+    Worry_Helplessness_N = n(),
+    
+    Medication_Avg = mean(c_across(starts_with("Medication_")), na.rm = TRUE),
+    Medication_SD = sd(c_across(starts_with("Medication_")), na.rm = TRUE),
+    Medication_N = n()
+  )
+
+# View the result
+print(AR_DBAS_16_avg_sd_n)
+
+```
+
+```{r}
+#| label: BFI-10 subscale scoring (ALL RESPONDENTS)
+
+# Convert BFI-10 responses to numeric values
+AR_BFI_10_subscales <- AR_personality %>%
+  mutate(across(
+    c(
+      "I see myself as someone who IS RESERVED.",
+      "I see myself as someone who IS GENERALLY TRUSTING.",
+      "I see myself as someone who TENDS TO BE LAZY.",
+      "I see myself as someone who IS RELAXED, HANDLES STRESS WELL.",
+      "I see myself as someone who HAS FEW ARTISTIC INTERESTS.",
+      "I see myself as someone who IS OUTGOING, SOCIABLE.",
+      "I see myself as someone who TENDS TO FIND FAULT WITH OTHERS.",
+      "I see myself as someone who DOES A THOROUGH JOB.",
+      "I see myself as someone who GETS NERVOUS EASILY.",
+      "I see myself as someone who HAS AN ACTIVE IMAGINATION."
+    ), 
+    ~ case_when(
+      . == "Disagree strongly" ~ 1,
+      . == "Disagree a little" ~ 2,
+      . == "Neither agree nor disagree" ~ 3,
+      . == "Agree a little" ~ 4,
+      . == "Agree strongly" ~ 5,
+      TRUE ~ NA_real_  # In case of any other unexpected values
+    ), .names = "{.col}_raw")) %>%
+  
+  # Reverse code the appropriate items (1, 7, 3, 4, and 5)
+  mutate(
+    `I see myself as someone who IS RESERVED._raw` = 6 - `I see myself as someone who IS RESERVED._raw`,
+    `I see myself as someone who TENDS TO FIND FAULT WITH OTHERS._raw` = 6 - `I see myself as someone who TENDS TO FIND FAULT WITH OTHERS._raw`,
+    `I see myself as someone who TENDS TO BE LAZY._raw` = 6 - `I see myself as someone who TENDS TO BE LAZY._raw`,
+    `I see myself as someone who IS RELAXED, HANDLES STRESS WELL._raw` = 6 - `I see myself as someone who IS RELAXED, HANDLES STRESS WELL._raw`,
+    `I see myself as someone who HAS FEW ARTISTIC INTERESTS._raw` = 6 - `I see myself as someone who HAS FEW ARTISTIC INTERESTS._raw`
+  ) %>%
+  
+  # Handle missing data (NA) by removing rows with NA values in the relevant columns
+  filter(
+    !is.na(`I see myself as someone who IS RESERVED._raw`) & 
+    !is.na(`I see myself as someone who IS OUTGOING, SOCIABLE._raw`) &
+    !is.na(`I see myself as someone who IS GENERALLY TRUSTING._raw`) &
+    !is.na(`I see myself as someone who TENDS TO FIND FAULT WITH OTHERS._raw`) &
+    !is.na(`I see myself as someone who TENDS TO BE LAZY._raw`) &
+    !is.na(`I see myself as someone who DOES A THOROUGH JOB._raw`) &
+    !is.na(`I see myself as someone who IS RELAXED, HANDLES STRESS WELL._raw`) &
+    !is.na(`I see myself as someone who GETS NERVOUS EASILY._raw`) &
+    !is.na(`I see myself as someone who HAS FEW ARTISTIC INTERESTS._raw`) &
+    !is.na(`I see myself as someone who HAS AN ACTIVE IMAGINATION._raw`)
+  ) %>%
+  
+  # Create subscale scores for each personality trait
+  mutate(
+    Extraversion = rowMeans(select(., starts_with("I see myself as someone who IS RESERVED._raw"),
+                                  starts_with("I see myself as someone who IS OUTGOING, SOCIABLE._raw")), na.rm = TRUE),
+    Agreeableness = rowMeans(select(., starts_with("I see myself as someone who IS GENERALLY TRUSTING._raw"),
+                                  starts_with("I see myself as someone who TENDS TO FIND FAULT WITH OTHERS._raw")), na.rm = TRUE),
+    Conscientiousness = rowMeans(select(., starts_with("I see myself as someone who TENDS TO BE LAZY._raw"),
+                                       starts_with("I see myself as someone who DOES A THOROUGH JOB._raw")), na.rm = TRUE),
+    Neuroticism = rowMeans(select(., starts_with("I see myself as someone who IS RELAXED, HANDLES STRESS WELL._raw"),
+                                 starts_with("I see myself as someone who GETS NERVOUS EASILY._raw")), na.rm = TRUE),
+    Openness_to_Experience = rowMeans(select(., starts_with("I see myself as someone who HAS FEW ARTISTIC INTERESTS._raw"),
+                                           starts_with("I see myself as someone who HAS AN ACTIVE IMAGINATION._raw")), na.rm = TRUE)
+  )
+
+# Summarize each subscale by computing the average, standard deviation, and N
+AR_BFI_10_summary <- AR_BFI_10_subscales %>%
+  summarise(
+    Extraversion_Avg = mean(Extraversion, na.rm = TRUE),
+    Extraversion_SD = sd(Extraversion, na.rm = TRUE),
+    Extraversion_N = sum(!is.na(Extraversion)),
+    
+    Agreeableness_Avg = mean(Agreeableness, na.rm = TRUE),
+    Agreeableness_SD = sd(Agreeableness, na.rm = TRUE),
+    Agreeableness_N = sum(!is.na(Agreeableness)),
+    
+    Conscientiousness_Avg = mean(Conscientiousness, na.rm = TRUE),
+    Conscientiousness_SD = sd(Conscientiousness, na.rm = TRUE),
+    Conscientiousness_N = sum(!is.na(Conscientiousness)),
+    
+    Neuroticism_Avg = mean(Neuroticism, na.rm = TRUE),
+    Neuroticism_SD = sd(Neuroticism, na.rm = TRUE),
+    Neuroticism_N = sum(!is.na(Neuroticism)),
+    
+    Openness_to_Experience_Avg = mean(Openness_to_Experience, na.rm = TRUE),
+    Openness_to_Experience_SD = sd(Openness_to_Experience, na.rm = TRUE),
+    Openness_to_Experience_N = sum(!is.na(Openness_to_Experience))
+  )
+
+# View the result
+print(AR_BFI_10_summary)
+
+```
+
+```{r}
+#| label: SURPS subscale scores (ALL RESPONDENTS)
+
+# Convert SURPS responses to numeric values based on a 4-point scale
+AR_SURPS_subscales <- AR_personality %>%
+  mutate(across(
+    c(
+      "I am content.",
+      "I often don't think things through before I speak.",
+      "I would like to skydive.",
+      "I am happy.",
+      "I often involve myself in situations that I later regret being involved in.",
+      "I enjoy new and exciting experiences even if they are unconventional.",
+      "I have faith that my future holds great promise.",
+      "It's frightening to feel dizzy or faint.",
+      "I like doing things that frighten me a little.",
+      "It frightens me when I feel my heart beat change.",
+      "I usually act without stopping to think.",
+      "I would like to learn how to drive a motorcycle.",
+      "I feel proud of my accomplishments.",
+      "I get scared when I'm too nervous.",
+      "Generally, I am an impulsive person.",
+      "I am interested in experience for its own sake even if it is illegal.",
+      "I feel that I'm a failure.",
+      "I get scared when I experience unusual body sensations.",
+      "I would enjoy hiking long distances in wild and uninhabited territory.",
+      "I feel pleasant.",
+      "It scares me when I'm unable to focus on a task.",
+      "I feel I have to be manipulative to get what I want.",
+      "I am very enthusiastic about my future."
+    ), 
+    ~ case_when(
+      . == "Strongly Disagree" ~ 1,
+      . == "Disagree" ~ 2,
+      . == "Agree" ~ 3,
+      . == "Strongly Agree" ~ 4,
+      TRUE ~ NA_real_  # Handle any invalid responses
+    ), .names = "{.col}_raw")) %>%
+  
+  # Reverse code the appropriate items (1, 4, 7, 13, 20, 23)
+  mutate(
+    `I am content._raw` = 5 - `I am content._raw`,
+    `I am happy._raw` = 5 - `I am happy._raw`,
+    `I have faith that my future holds great promise._raw` = 5 - `I have faith that my future holds great promise._raw`,
+    `I feel proud of my accomplishments._raw` = 5 - `I feel proud of my accomplishments._raw`,
+    `I feel pleasant._raw` = 5 - `I feel pleasant._raw`,
+    `I feel that I'm a failure._raw` = 5 - `I feel that I'm a failure._raw`
+  ) %>%
+  
+  # Handle missing data (NA) by removing rows with NA values in the relevant columns
+  filter(
+    !is.na(`I am content._raw`) & 
+    !is.na(`I often don't think things through before I speak._raw`) &
+    !is.na(`I would like to skydive._raw`) &
+    !is.na(`I am happy._raw`) &
+    !is.na(`I often involve myself in situations that I later regret being involved in._raw`) &
+    !is.na(`I enjoy new and exciting experiences even if they are unconventional._raw`) &
+    !is.na(`I have faith that my future holds great promise._raw`) &
+    !is.na(`It's frightening to feel dizzy or faint._raw`) &
+    !is.na(`I like doing things that frighten me a little._raw`) &
+    !is.na(`It frightens me when I feel my heart beat change._raw`) &
+    !is.na(`I usually act without stopping to think._raw`) &
+    !is.na(`I would like to learn how to drive a motorcycle._raw`) &
+    !is.na(`I feel proud of my accomplishments._raw`) &
+    !is.na(`I get scared when I'm too nervous._raw`) &
+    !is.na(`Generally, I am an impulsive person._raw`) &
+    !is.na(`I am interested in experience for its own sake even if it is illegal._raw`) &
+    !is.na(`I feel that I'm a failure._raw`) &
+    !is.na(`I get scared when I experience unusual body sensations._raw`) &
+    !is.na(`I would enjoy hiking long distances in wild and uninhabited territory._raw`) &
+    !is.na(`I feel pleasant._raw`) &
+    !is.na(`It scares me when I'm unable to focus on a task._raw`) &
+    !is.na(`I feel I have to be manipulative to get what I want._raw`) &
+    !is.na(`I am very enthusiastic about my future._raw`)
+  ) %>%
+  
+  # Create subscale scores for each personality trait
+  mutate(
+    Hopelessness = rowMeans(select(., starts_with("I am content._raw"),
+                                  starts_with("I am happy._raw"),
+                                  starts_with("I have faith that my future holds great promise._raw"),
+                                  starts_with("I feel proud of my accomplishments._raw"),
+                                  starts_with("I feel that I'm a failure._raw"),
+                                  starts_with("I feel pleasant._raw")), na.rm = TRUE),
+    Anxiety_Sensitivity = rowMeans(select(., starts_with("It's frightening to feel dizzy or faint._raw"),
+                                         starts_with("I like doing things that frighten me a little._raw"),
+                                         starts_with("It frightens me when I feel my heart beat change._raw"),
+                                         starts_with("I get scared when I'm too nervous._raw"),
+                                         starts_with("I get scared when I experience unusual body sensations._raw")), na.rm = TRUE),
+    Impulsivity = rowMeans(select(., starts_with("I often don't think things through before I speak._raw"),
+                                 starts_with("I often involve myself in situations that I later regret being involved in._raw"),
+                                 starts_with("I usually act without stopping to think._raw"),
+                                 starts_with("Generally, I am an impulsive person._raw"),
+                                 starts_with("I feel I have to be manipulative to get what I want._raw")), na.rm = TRUE),
+    Sensation_Seeking = rowMeans(select(., starts_with("I would like to skydive._raw"),
+                                       starts_with("I enjoy new and exciting experiences even if they are unconventional._raw"),
+                                       starts_with("I would like to learn how to drive a motorcycle._raw"),
+                                       starts_with("I would enjoy hiking long distances in wild and uninhabited territory._raw"),
+                                       starts_with("I am very enthusiastic about my future._raw")), na.rm = TRUE)
+  )
+
+# Summarize each subscale by computing the average, standard deviation, and N
+AR_SURPS_summary <- AR_SURPS_subscales %>%
+  summarise(
+    Hopelessness_Avg = mean(Hopelessness, na.rm = TRUE),
+    Hopelessness_SD = sd(Hopelessness, na.rm = TRUE),
+    Hopelessness_N = sum(!is.na(Hopelessness)),
+    
+    Anxiety_Sensitivity_Avg = mean(Anxiety_Sensitivity, na.rm = TRUE),
+    Anxiety_Sensitivity_SD = sd(Anxiety_Sensitivity, na.rm = TRUE),
+    Anxiety_Sensitivity_N = sum(!is.na(Anxiety_Sensitivity)),
+    
+    Impulsivity_Avg = mean(Impulsivity, na.rm = TRUE),
+    Impulsivity_SD = sd(Impulsivity, na.rm = TRUE),
+    Impulsivity_N = sum(!is.na(Impulsivity)),
+    
+    Sensation_Seeking_Avg = mean(Sensation_Seeking, na.rm = TRUE),
+    Sensation_Seeking_SD = sd(Sensation_Seeking, na.rm = TRUE),
+    Sensation_Seeking_N = sum(!is.na(Sensation_Seeking))
+  )
+
+# View the result
+print(AR_SURPS_summary)
+
+```
+
+```{r}
+#| label: CISS-21 subscale scoring (ALL RESPONDENTS)
+
+# Convert CISS-21 responses to numeric values
+AR_CISS_21_subscales <- AR_personality %>%
+  mutate(across(
+    c(
+      "Take some time off and get away from the situation.",
+      "Focus on the problem and see how I can solve it.",
+      "Blame myself for having gotten into this situation.",
+      "Treat myself to a favorite food or snack.",
+      "Feel anxious about not being able to cope.",
+      "Think about how I solved similar problems.",
+      "Visit a friend.",
+      "Determine a course of action and follow it.",
+      "Buy myself something.",
+      "Blame myself for being too emotional about the situation.",
+      "Work to understand the situation.",
+      "Become very upset.",
+      "Take corrective action immediately.",
+      "Blame myself for not knowing what to do.",
+      "Spend time with a special person.",
+      "Think about the event and learn from my mistakes.",
+      "Wish that I could change what had happened or how I felt.",
+      "Go out for a snack or meal.",
+      "Analyze my problem before reacting.",
+      "Focus on my general inadequacies.",
+      "Phone a friend."
+    ), 
+    ~ case_when(
+      . == "ALMOST NEVER" ~ 1,
+      . == "ALMOST ALWAYS" ~ 5,
+      . == "2" ~ 2,
+      . == "3" ~ 3,
+      . == "4" ~ 4,
+      TRUE ~ NA_real_  # In case of any other unexpected values
+    ), .names = "{.col}_raw")) %>%
+  
+  # Reverse code the appropriate items for avoidance and emotion-oriented coping (1, 4, 7, 9, 15, 18, 21)
+  mutate(
+    `Take some time off and get away from the situation._raw` = 6 - `Take some time off and get away from the situation._raw`,
+    `Treat myself to a favorite food or snack._raw` = 6 - `Treat myself to a favorite food or snack._raw`,
+    `Visit a friend._raw` = 6 - `Visit a friend._raw`,
+    `Buy myself something._raw` = 6 - `Buy myself something._raw`,
+    `Spend time with a special person._raw` = 6 - `Spend time with a special person._raw`,
+    `Go out for a snack or meal._raw` = 6 - `Go out for a snack or meal._raw`,
+    `Phone a friend._raw` = 6 - `Phone a friend._raw`
+  ) %>%
+  
+  # Create subscale scores for each coping style with na.rm = TRUE to handle missing values
+  mutate(
+    Avoidance_Coping = rowMeans(select(., starts_with("Take some time off and get away from the situation._raw"),
+                                      starts_with("Treat myself to a favorite food or snack._raw"),
+                                      starts_with("Visit a friend._raw"),
+                                      starts_with("Buy myself something._raw"),
+                                      starts_with("Spend time with a special person._raw"),
+                                      starts_with("Go out for a snack or meal._raw"),
+                                      starts_with("Phone a friend._raw")), na.rm = TRUE),
+    
+    Task_Oriented_Coping = rowMeans(select(., starts_with("Focus on the problem and see how I can solve it._raw"),
+                                          starts_with("Think about how I solved similar problems._raw"),
+                                          starts_with("Determine a course of action and follow it._raw"),
+                                          starts_with("Work to understand the situation._raw"),
+                                          starts_with("Take corrective action immediately._raw"),
+                                          starts_with("Think about the event and learn from my mistakes._raw"),
+                                          starts_with("Analyze my problem before reacting._raw")), na.rm = TRUE),
+    
+    Emotion_Oriented_Coping = rowMeans(select(., starts_with("Blame myself for having gotten into this situation._raw"),
+                                            starts_with("Feel anxious about not being able to cope._raw"),
+                                            starts_with("Blame myself for being too emotional about the situation._raw"),
+                                            starts_with("Become very upset._raw"),
+                                            starts_with("Blame myself for not knowing what to do._raw"),
+                                            starts_with("Wish that I could change what had happened or how I felt._raw"),
+                                            starts_with("Focus on my general inadequacies._raw")), na.rm = TRUE)
+  )
+
+# Summarize each subscale by computing the average, standard deviation, and N
+AR_CISS_21_summary <- AR_CISS_21_subscales %>%
+  summarise(
+    Avoidance_Coping_Avg = mean(Avoidance_Coping, na.rm = TRUE),
+    Avoidance_Coping_SD = sd(Avoidance_Coping, na.rm = TRUE),
+    Avoidance_Coping_N = sum(!is.na(Avoidance_Coping)),
+    
+    Task_Oriented_Coping_Avg = mean(Task_Oriented_Coping, na.rm = TRUE),
+    Task_Oriented_Coping_SD = sd(Task_Oriented_Coping, na.rm = TRUE),
+    Task_Oriented_Coping_N = sum(!is.na(Task_Oriented_Coping)),
+    
+    Emotion_Oriented_Coping_Avg = mean(Emotion_Oriented_Coping, na.rm = TRUE),
+    Emotion_Oriented_Coping_SD = sd(Emotion_Oriented_Coping, na.rm = TRUE),
+    Emotion_Oriented_Coping_N = sum(!is.na(Emotion_Oriented_Coping))
+  )
+
+# View the result
+print(AR_CISS_21_summary)
 
 
-
-
+```
 
 
 

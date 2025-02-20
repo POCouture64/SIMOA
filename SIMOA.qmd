@@ -1530,9 +1530,10 @@ print(AR_CISS_21_summary)
 
 ```
 
+
 ## STOPPED Personality Calculations (STOPPED)
 
-This is the code I will use to calculate the mean, sd, and N for all the personality measurs but only for those who stopped using BZRAs.
+This is the code I will use to calculate the mean, sd, and N for all the personality measures but only for those who stopped using BZRAs.
 
 ```{r}
 #| label: Creating New Object for Those Who Stopped
@@ -1943,6 +1944,11 @@ STOPPED_CISS_21_summary <- STOPPED_CISS_21_subscales %>%
 print(STOPPED_CISS_21_summary)
 
 ```
+
+
+## USING Personality Calculations (STOPPED)
+
+This is the code I will use to calculate the mean, sd, and N for all the personality measures but only for those who are still using BZRAs.
 
 
 

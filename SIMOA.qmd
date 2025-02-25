@@ -446,17 +446,17 @@ AR_demo <- SIMOA %>%
   )
 
 # Calculate mean and standard deviation of age (only for those who provided an age)
-AR_mean_age <- mean(N_AR$`What is your age?`, na.rm = TRUE)
-AR_sd_age <- sd(N_AR$`What is your age?`, na.rm = TRUE)
+AR_mean_age <- mean(AR_demo$`What is your age?`, na.rm = TRUE)
+AR_sd_age <- sd(AR_demo$`What is your age?`, na.rm = TRUE)
 
 # Count the number of included participants
-AR_n_people <- nrow(N_AR)
+AR_n_people <- nrow(AR_demo)
 
 # Output the results
 list(
-  AR_mean_age = mean_age,
-  AR_sd_age = sd_age,
-  AR_n_people = n_people
+  AR_mean_age = AR_mean_age,
+  AR_sd_age = AR_sd_age,
+  AR_n_people = AR_n_people
 )
 
 ```
@@ -530,12 +530,12 @@ list(
 #|label: Province of Residence (All Respondents)
 # This is the code used to determine the number of responses each province received from the elegible participants.
 
-province_counts <- AR_demo %>%
+AR_province_counts <- AR_demo %>%
   group_by(`Select the province or territory in which you currently live.`) %>%
   summarise(count = n(), .groups = "drop")
 
 # View the result
-print(province_counts)
+print(AR_province_counts)
 
 ```
 
@@ -543,12 +543,12 @@ print(province_counts)
 #|label: Highest Education Completed (All Respondents)
 # This is the code used to determine the number of responses of each educational level completed from the elegible participants. 
 
-complete_education <- AR_demo %>%
+AR_complete_education <- AR_demo %>%
   group_by(`What is the highest level of education you completed?`) %>%
   summarise(count = n(), .groups = "drop")
 
 # View the result
-print(complete_education)
+print(AR_complete_education)
 
 ```
 
@@ -556,24 +556,24 @@ print(complete_education)
 #|label: Employment Status (All Respondents)
 # This is the code used to determine the number of responses of each educational level completed from the elegible participants. 
 
-employment <- AR_demo %>%
+AR_employment <- AR_demo %>%
   group_by(`What is your employment status?`) %>%
   summarise(count = n(), .groups = "drop")
 
 # View the result
-print(employment)
+print(AR_employment)
 
 ```
 
 ```{r}
 #|label: Driving Frequency (All Respondents)
 # This is the code used to determine the number of responses of how often they drive completed from the elegible participants. 
-drive_freq <- AR_demo %>%
+AR_drive_freq <- AR_demo %>%
   group_by(`How often do you drive?`) %>%
   summarise(count = n(), .groups = "drop")
 
 # View the result
-print(drive_freq)
+print(AR_drive_freq)
 
 ```
 
@@ -581,12 +581,12 @@ print(drive_freq)
 #|label: Household Income (All Respondents)
 # This is the code used to determine the number of responses for their level of household income completed from the elegible participants. 
 
-household_income <- AR_demo %>%
+AR_household_income <- AR_demo %>%
   group_by(`Which category matches your annual household income?`) %>%
   summarise(count = n(), .groups = "drop")
 
 # View the result
-print(household_income)
+print(AR_household_income)
 
 ```
 
@@ -594,12 +594,12 @@ print(household_income)
 #|label: People They Live With (All Respondents)
 # This is the code used to determine the number of responses of who they currently live with completed from the elegible participants. 
 
-live_with <- AR_demo %>%
+AR_live_with <- AR_demo %>%
   group_by(`With whom do you currently live? Select all that apply.`) %>%
   summarise(count = n(), .groups = "drop")
 
 # View the result
-print(live_with)
+print(AR_live_with)
 
 ```
 
@@ -607,7 +607,7 @@ print(live_with)
 #|label: OSSS-3 Total Score with Qualitative Markers
 # This code calculates the count of each OSSS-3 score and assigns qualitative markers.
 
-OSSS_3_score <- AR_demo %>%
+AR_OSSS_3_score <- AR_demo %>%
   # Ensure OSSS-3_score is numeric
   mutate(`OSSS-3_score` = as.numeric(`OSSS-3_score`)) %>%
   group_by(`OSSS-3_score`) %>%
@@ -622,7 +622,7 @@ OSSS_3_score <- AR_demo %>%
   )
 
 # View the result
-print(OSSS_3_score)
+print(AR_OSSS_3_score)
 
 ```
 
@@ -2347,6 +2347,9 @@ print(USING_CISS_21_summary)
 
 ## Independent Samples t-test for Personality Calculations
 
+```{r}
+
+```
 
 
 

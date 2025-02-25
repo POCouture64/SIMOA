@@ -2351,6 +2351,4 @@ print(USING_CISS_21_summary)
 
 ```
 
-
-
 The `echo: false` option disables the printing of code (only output is displayed).

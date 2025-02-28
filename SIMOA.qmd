@@ -631,7 +631,7 @@ print(AR_OSSS_3_score)
 ## STOPPED Demographic Data (STOPPED)
 
 ```{r}
-#| label: Creating New Object for Those Who Stopped
+#| label: Creating New Object for Those Who Stopped (Demographic)
 # The object 'STOPPED_demo' contains all people that meet our new inclusion criteria. Keep calling this object rather than doing the filter calculations everytime.
 
 STOPPED_demo <- SIMOA %>%

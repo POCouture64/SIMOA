@@ -31,6 +31,8 @@ library(data.table)
 library(dplyr)
 library(tidyverse)
 library(stringr)
+library(car)
+library(broom)
 
 ```
 
@@ -1091,16 +1093,9 @@ print(USING_PHQ_2_score)
 Below I will include all the code I used to calculate the difference between the people who reported having stopped using BZRAs and those who did not. This will be used for Table 1 to see if the groups are different from each other which may limit the conclusions we are able to draw from the research and could impact the amount of power through all our analyses.
 
 ```{r}
-#|label: Comparing Age
+#|label: Comparing All Variables from Previous Sections
 
-# Shapiro-Wilk normality test for Group 1 (STOPPED)
-shapiro.test(STOPPED_demo$`What is your age?`)
 
-# Shapiro-Wilk normality test for Group 2 (USING)
-shapiro.test(USING_demo$`What is your age?`)
-
-# Mann-Whitney U test (non-parametric)
-wilcox.test(STOPPED_demo$`What is your age?`, USING_demo$`What is your age?`)
 
 
 ```

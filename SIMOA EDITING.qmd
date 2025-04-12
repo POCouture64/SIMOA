@@ -1,0 +1,42 @@
+---
+title: "SIMOA EDITING"
+author: "Pierre-Olivier Couture"
+format: html
+editor: visual
+---
+
+## SIMOA 
+
+This MSc thesis investigates personality-related factors associated with the discontinuation of benzodiazepine receptor agonists (BZRAs) used for sleep. Using a machine learning approach, specifically a random forest model, we compare individuals who have stopped using BZRAs with those who continue to use them. Personality is assessed through multiple validated instruments, including the DBAS-16 (Dysfunctional Beliefs and Attitudes about Sleep), BFI-10 (Big Five Inventory), SURPS (Substance Use Risk Profile Scale), and CISS-21 (Coping Inventory for Stressful Situations). The aim is to identify patterns and predictors that distinguish these two groups and provide insight into the psychological and behavioral factors influencing BZRA use.
+
+
+## Packages and Data Loading
+
+Below I will include all the packages I installed or libraried in for the project. I will aslo load in the data and clean it in this section so that all other sections can use the pre-created data frames rather having to remake it for each section. 
+
+```{r}
+#| label: Packages
+
+library(readr)
+
+```
+
+```{r}
+#| label: Data Loading
+
+SIMOA <- read_csv("SIMOA Report.csv")
+View(SIMOA)
+
+```
+
+
+
+
+You can add options to executable code like this
+
+```{r}
+#| echo: false
+2 * 2
+```
+
+The `echo: false` option disables the printing of code (only output is displayed).

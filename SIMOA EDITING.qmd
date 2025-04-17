@@ -17,8 +17,13 @@ Below I will include all the packages I installed or libraried in for the projec
 ```{r}
 #| label: Packages
 
+install.packages("writexl")
+install.packages("effectsize")
+
 library(dplyr)
 library(readxl)
+library(writexl)
+library(effectsize)
 
 ```
 
@@ -47,9 +52,9 @@ Below is the code I used to create objects for all respondents who meet the incl
 ```{r}
 #| label: Creating Object for All Participants
 
-colnames(SIMOA)
+#colnames(SIMOA)
 
-colnames(SIMOA)[46] <- c("sleep_pill_used")
+#colnames(SIMOA)[46] <- c("sleep_pill_used")
 
 AR <- SIMOA %>%
   filter(
@@ -89,13 +94,121 @@ using <- SIMOA %>%
     (`Have you stopped taking these medications? 'Yes': you no longer take them'No': you take them regularly or every now and again` == "No")
   )
 
+#| label: Recreating Objects After Question Review
+
+# Manually classified based on question review
+# Using group: Based on future intent to stop use
+additional_using_ids <- c(24, 153, 212, 248, 334, 368, 587, 617)
+
+# Stopped group: Based on past-tense agreement or indicating no current use
+additional_stopped_ids <- c(11, 30, 50, 137, 186, 308, 336, 365,
+                            413, 434, 445, 452, 467, 469, 503, 571, 625, 668)
+
+#############
+## STOPPED ##
+#############
+stopped <- SIMOA %>%
+  filter(
+    ((`What is your age?` >= 65 & !is.na(`What is your age?`)) | 
+     (`Are you 65 or older?` == "Yes")) &
+    !is.na(`sleep_pill_used`) &
+    (`Have you stopped taking these medications? 'Yes': you no longer take them'No': you take them regularly or every now and again` == "Yes")
+  )
+
+# Add manually identified 'stopped' participants
+stopped <- bind_rows(
+  stopped,
+  SIMOA %>% filter(`Record ID` %in% additional_stopped_ids)
+)
+
+###########
+## USING ##
+###########
+using <- SIMOA %>%
+  filter(
+    ((`What is your age?` >= 65 & !is.na(`What is your age?`)) | 
+     (`Are you 65 or older?` == "Yes")) &
+    !is.na(`sleep_pill_used`) &
+    (`Have you stopped taking these medications? 'Yes': you no longer take them'No': you take them regularly or every now and again` == "No")
+  )
+
+# Add manually identified 'using' participants
+using <- bind_rows(
+  using,
+  SIMOA %>% filter(`Record ID` %in% additional_using_ids)
+)
+
 ```
 
+```{r}
+#| label: Classification
+## Some people were able to continue in the study despite not indicating whether or not they had stopped. Because of this the AR groups contains 26 more participants than the 'stopped' and 'using' groups. Since this won't look good in a table and may lead to questions or concerns about my data screening process I have decided I will make a subset of the data with these participants and examine which set of questions they answered. Some of the questions were worded for past use (those who stopped) and other questions were worded for present use (those still using). Given this, based on the set of questions they answered that is the group they will be placed in. If participants answered both sets of questions I think it is best to exclude them since we do not know what group they belong too and adding them to any group could change the results. 
+
+## I could also reach out to Dr. Yakovenko about this once I have determined what group they are in and maybe run a sensitivty analysis. That way I can describe the procedure in my methods and then justify that this was done properly because adding them did not have a significant impact on the results. Or if it did, maybe I should not of grouped them how I thought and it may be best to simply remove them from the analysis.
+
+## Based on what I find I will update the screening code above and include a line for the stopped using question that way the AR group will have the same # of people as the 'using' and 'stopped' groups combined. 
+
+# Vector of Record_IDs for people who skipped the question
+skipped_ids <- c(11, 24, 30, 50, 137, 153, 186, 212, 308, 334, 336, 365, 368,
+                 434, 445, 452, 467, 503, 571, 587, 617, 625, 668, 248, 413, 469)
+
+# Now filter the main dataset
+Skipped_question <- SIMOA %>%
+  filter(`Record ID` %in% skipped_ids)
+
+# Write the filtered data back to Excel
+write_xlsx(Skipped_question, "Skipped Question (Still using or not).xlsx")
+
+Skipped_questions_analysis <- Skipped_question %>%
+  select(`Record ID`, `Do you intend to completely stop using sleeping pills within the next year?`) %>%
+  arrange(`Do you intend to completely stop using sleeping pills within the next year?`)
+
+## The skipped_questions_analysis showed that Record ID: 24, 153, 212, 248, 334, 368, 587, and 617 indicated they had intentions to stop in the next year either strong or not. This to me would indicate that they are still using and I will add them to that group for now. All other Record IDs will be examined with other responses to see where they best fit in but the Record IDs previously mentioned will be excluded from future analyses since it is assumed they are still using. 
+
+new_skipped_ids <- c(11, 30, 50, 137, 186, 308, 336, 365,
+                 434, 445, 452, 467, 503, 571, 625, 668, 413, 469)
+
+Skipped_question <- SIMOA %>%
+  filter(`Record ID` %in% new_skipped_ids)
+
+new_skipped_questions_analysis <- Skipped_question %>%
+  select(`Record ID`, `Taking my sleeping pills was important for my overall health and wellness.`) %>%
+  arrange(`Taking my sleeping pills was important for my overall health and wellness.`)
+
+## The new_skipped_questions_analysis showed that Record ID: 11, 413, and 445 indicated they agreed that taking WAS important for their health and wellness which indicates to me that they have stopped using since the question asks about past use. They also did not have answers for the questions in the present tense. These should be included in the stopped group for further analysis. Record ID: 137, 308, 336, 365, 434, 452, 467, 469, 503, 571, 625, and 668 indicated they disagreed with this statement. To me this indicates they are in the stopped group since they did not provide answers to the present tense questions. Only Record IDs: 30, 50, and 186 have not fallen into a category yet. I will examine them below.
+
+target_ids <- c(30, 50, 186)
+
+SIMOA %>%
+  filter(`Record ID` %in% target_ids) %>%
+  View()
+
+final_skipped_questions_analysis <- Skipped_question %>%
+  filter(`Record ID` %in% target_ids) %>%
+  select(`Record ID`, `How often are you currently taking them?`) %>%
+  arrange(`How often are you currently taking them?`)
+
+## The final_skipped_questions_analysis showed that the remaining Record IDs (30, 50, and 186) all indicated that they are not currently taking any BZRAs. For that reason they will be added to the stopped group. 
 
 
 
 
 
+```
+
+## Table 1 Code With Comparison (DEMOGRAPHICS)
+
+Table 1 will include all demographic questions as well as the OSSS-3 and PHQ-2 scores since they are part of the initial data collection. The table will feature a column for the variable of interest, the total sample (AR), one column for those who are still using and a column for those who stopped. Furthermore, there will be a column at the end with a Cohen's d effect size comparing how different the stopped and using groups are from each other. 
+
+```{r}
+
+```
+
+## Table 2 Code With Comparison (HEALTH INFORMATION)
+
+
+
+## Table 3 Code With Comparison (PERSONALITY MEASURES)
 
 
 

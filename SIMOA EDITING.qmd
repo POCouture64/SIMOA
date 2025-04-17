@@ -893,15 +893,10 @@ print(paste("Cramér's V for living situation comparison:", cramers_v))
 
 ## Table 2 Code With Comparison (HEALTH INFORMATION)
 
-
+Table 2 will include all health information variables we want to look at and compare between the groups. The table will feature a column for the variable of interest, the total sample (AR), one column for those who are still using and a column for those who stopped. 
 
 ## Table 3 Code With Comparison (PERSONALITY MEASURES)
 
 
 
-```{r}
-#| echo: false
-2 * 2
-```
 
-The `echo: false` option disables the printing of code (only output is displayed).

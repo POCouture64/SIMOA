@@ -17,22 +17,87 @@ Below I will include all the packages I installed or libraried in for the projec
 ```{r}
 #| label: Packages
 
-library(readr)
+library(dplyr)
+library(readxl)
 
 ```
 
 ```{r}
 #| label: Data Loading
 
-SIMOA <- read_csv("SIMOA Report.csv")
+SIMOA <- read_excel("SIMOA Data Cleaning 9 Jan POC.xlsx", 
+    skip = 1)
 View(SIMOA)
+
+
+#| label: Removing Columns
+## I will use this text to remove the columns that contain data I will not examine to make the object smaller and easier to manage.
+
+SIMOA <- SIMOA[, !colnames(SIMOA) %in% 
+                 c("Complete?", "Consent timestamp", "Survey Completion", "Survey start timestamp", 
+                   "Continue with survey? Thank you for your responses so far. You have completed 4 of 10 sections. Would you like to continue with the survey now or save your responses and come back later?",
+                   "Continue with survey? We really appreciate your participation and responses so far and understand that this is a very long survey. You just completed the longest section. The remaining survey sections are not nearly as long. Would you like to continue with the survey now or save your responses and come back later?", "...3", "Complete?...4", "Complete?...10", "Complete?...25", "Complete?...52")]
+
+```
+
+## New Data Frames for Specific Groups
+
+Below is the code I used to create objects for all respondents who meet the inclusion criteria, and then further divide it into those that stooped and those that kept using. Creating these objects will make it easier for me when comparing the groups later since I will only need to call on these data frames rather than recreate it all the time. The inclusion criteria are that they indicate they are 65 or over by answering yes or filling in the text answer as something ≥65 and that they were able to indicate what BZRA they used. This is to ensure that the effects we might find can be associated with BZRAs rather than other substances that people can be prescribed to help them sleep such as antihistamines and other medications. 
+
+```{r}
+#| label: Creating Object for All Participants
+
+colnames(SIMOA)
+
+colnames(SIMOA)[46] <- c("sleep_pill_used")
+
+AR <- SIMOA %>%
+  filter(
+    # Include if age is provided and ≥ 65
+    (`What is your age?` >= 65 & !is.na(`What is your age?`)) | 
+    # OR if they answered "Yes" to being 65+
+    (`Are you 65 or older?` == "Yes"),
+    # AND they answered the sleeping pill question
+    !is.na(`sleep_pill_used`)
+  )
+
+#| label: Creating Object For Those Who Stopped Using
+
+stopped <- SIMOA %>%
+  filter(
+    # Include if age is provided and ≥ 65
+    (`What is your age?` >= 65 & !is.na(`What is your age?`)) | 
+    # OR if they answered "Yes" to being 65+
+    (`Are you 65 or older?` == "Yes"),
+    # AND they answered the sleeping pill question
+    !is.na(`sleep_pill_used`),
+    # AND they answered that they have stopped using sleeping pills
+    (`Have you stopped taking these medications? 'Yes': you no longer take them'No': you take them regularly or every now and again` == "Yes")
+  )
+
+#| label: Creating Object For Those Who Are Still Using
+
+using <- SIMOA %>%
+  filter(
+    # Include if age is provided and ≥ 65
+    (`What is your age?` >= 65 & !is.na(`What is your age?`)) | 
+    # OR if they answered "Yes" to being 65+
+    (`Are you 65 or older?` == "Yes"),
+    # AND they answered the sleeping pill question
+    !is.na(`sleep_pill_used`),
+    # AND they answered that they have stopped using sleeping pills
+    (`Have you stopped taking these medications? 'Yes': you no longer take them'No': you take them regularly or every now and again` == "No")
+  )
 
 ```
 
 
 
 
-You can add options to executable code like this
+
+
+
+
 
 ```{r}
 #| echo: false

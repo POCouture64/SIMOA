@@ -17,10 +17,10 @@ Below I will include all the packages I installed or libraried in for the projec
 ```{r}
 #| label: Packages
 
-install.packages("writexl")
-install.packages("effectsize")
-install.packages("vcd")
-install.packages("effsize")  
+#install.packages("writexl")
+#install.packages("effectsize")
+#install.packages("vcd")
+#install.packages("effsize")  
 
 
 library(effsize)
@@ -59,9 +59,9 @@ Below is the code I used to create objects for all respondents who meet the incl
 ```{r}
 #| label: Creating Object for All Participants
 
-colnames(SIMOA)
+#colnames(SIMOA)
 
-#colnames(SIMOA)[46] <- c("sleep_pill_used")
+colnames(SIMOA)[46] <- c("sleep_pill_used")
 
 AR <- SIMOA %>%
   filter(

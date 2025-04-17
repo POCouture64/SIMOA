@@ -19,11 +19,18 @@ Below I will include all the packages I installed or libraried in for the projec
 
 install.packages("writexl")
 install.packages("effectsize")
+install.packages("vcd")
+install.packages("effsize")  
 
+
+library(effsize)
 library(dplyr)
 library(readxl)
 library(writexl)
 library(effectsize)
+library(tidyr)
+library(stringr)
+library(vcd)
 
 ```
 
@@ -52,7 +59,7 @@ Below is the code I used to create objects for all respondents who meet the incl
 ```{r}
 #| label: Creating Object for All Participants
 
-#colnames(SIMOA)
+colnames(SIMOA)
 
 #colnames(SIMOA)[46] <- c("sleep_pill_used")
 
@@ -201,8 +208,688 @@ final_skipped_questions_analysis <- Skipped_question %>%
 Table 1 will include all demographic questions as well as the OSSS-3 and PHQ-2 scores since they are part of the initial data collection. The table will feature a column for the variable of interest, the total sample (AR), one column for those who are still using and a column for those who stopped. Furthermore, there will be a column at the end with a Cohen's d effect size comparing how different the stopped and using groups are from each other. 
 
 ```{r}
+#| label: AR Calculations
+#########
+## Age ##
+#########
+AR_age <- AR %>%
+  summarise(
+    mean_age = mean(`What is your age?`, na.rm = TRUE),
+    sd_age = sd(`What is your age?`, na.rm = TRUE),
+    n = sum(!is.na(`What is your age?`))
+  )
+# Print the summary
+View(AR_age)
 
+############
+## Gender ##
+############
+AR_gender <- AR %>%
+  group_by(`To which gender identity do you most identify?`) %>%
+  summarise(
+    count = n(),
+    percentage = (n() / nrow(AR)) * 100
+  )
+# View the summary
+View(AR_gender)
+
+#########
+## Sex ##
+#########
+AR_sex <- AR %>%
+  group_by(`What is your sex?Indicate your sex assigned at birth.`) %>%
+  summarise(
+    count = n(),
+    percentage = (n() / nrow(AR)) * 100
+  )
+# Print the summary
+View(AR_sex)
+
+###########################
+## Province of Residence ##
+###########################
+AR_province <- AR %>%
+  group_by(`Select the province or territory in which you currently live.`) %>%
+  summarise(
+    count = n(),
+    percentage = (n() / nrow(AR)) * 100
+  )
+# View the summary
+View(AR_province)
+
+#################################
+## Highest Education Completed ##
+#################################
+AR_education <- AR %>%
+  group_by(`What is the highest level of education you completed?`) %>%
+  summarise(
+    count = n(),
+    percentage = (n() / nrow(AR)) * 100
+  )
+# View the summary
+View(AR_education)
+
+#######################
+## Employment Status ##
+#######################
+AR_employment <- AR %>% 
+  group_by(`What is your employment status?`) %>% 
+  summarise(
+    count = n(),
+    percentage = (n() / nrow(AR)) * 100
+  )
+# View the summary
+View(AR_employment)
+
+#######################
+## Driving Frequency ##
+#######################
+AR_driving_frequency <- AR %>%
+  group_by(`How often do you drive?`) %>%
+  summarise(
+    count = n(),
+    percentage = (n() / nrow(AR)) * 100
+  )
+# View the summary
+View(AR_driving_frequency)
+
+######################
+## Household Income ##
+######################
+AR_income <- AR %>%
+  group_by(`Which category matches your annual household income?`) %>%
+  summarise(
+    count = n(),
+    percentage = (n() / nrow(AR)) * 100
+  )
+# View the summary
+View(AR_income)
+
+###########################
+## People They Live With ## 
+###########################
+AR_living_situation <- AR %>%
+  separate_rows(`With whom do you currently live? Select all that apply.`, sep = ";") %>%
+  mutate(Living_Situation = str_trim(`With whom do you currently live? Select all that apply.`)) %>%
+  filter(Living_Situation %in% c(
+    "I live alone.",
+    "I live with my spouse or partner.",
+    "I live with my children.",
+    "I live with friends or other family members.",
+    "Other"
+  )) %>%
+  count(Living_Situation, name = "count") %>%
+  mutate(percentage = (count / nrow(AR)) * 100)
+View(AR_living_situation)
+
+############
+## OSSS-3 ##
+############
+# I will present the avg and sd for the numerical value of all the answers and provide a summary of the descriptive labels while idenitfying the # of people who fell into each of them using the cutoffs for the measure. 
+# Breakdown by individual score
+AR_osss_individual <- AR %>%
+  count(OSSS_score = AR[[19]], name = "count") %>%
+  arrange(OSSS_score) %>%
+  mutate(percentage = (count / sum(count, na.rm = TRUE)) * 100)
+View(AR_osss_individual)
+
+# Breakdown by social support level
+AR_osss_support <- AR %>%
+  mutate(Social_Support_Level = case_when(
+    AR[[19]] >= 3 & AR[[19]] <= 8 ~ "Poor Social Support",
+    AR[[19]] >= 9 & AR[[19]] <= 11 ~ "Moderate Social Support",
+    AR[[19]] >= 12 ~ "Strong Social Support",
+    TRUE ~ NA_character_
+  )) %>%
+  count(Social_Support_Level, name = "count") %>%
+  mutate(percentage = (count / sum(count, na.rm = TRUE)) * 100)
+View(AR_osss_support)
+
+###########
+## PHQ-2 ##
+###########
+# I will present the avg and sd for the numerical value of al the answers and provide a summary of the descriptive labels while idenitfying the # of people who fell into each of them using the cutoffs for the measure. 
+# Breakdown by individual PHQ-2 score
+AR_phq2_individual <- AR %>%
+  count(PHQ2_score = AR[[28]], name = "count") %>%
+  arrange(PHQ2_score) %>%
+  mutate(percentage = (count / sum(count, na.rm = TRUE)) * 100)
+View(AR_phq2_individual)
+
+# Breakdown by PHQ-2 depression status (using a cutoff score of 2 for possible depression)
+AR_phq2_depression <- AR %>%
+  mutate(PHQ2_status = case_when(
+    AR[[28]] >= 2 ~ "Possible Depression (PHQ-2 ≥ 2)",
+    TRUE ~ "No Depression (PHQ-2 < 2)"
+  )) %>%
+  count(PHQ2_status, name = "count") %>%
+  mutate(percentage = (count / sum(count, na.rm = TRUE)) * 100)
+View(AR_phq2_depression)
 ```
+
+```{r}
+#|label: stopped Calculations
+#########
+## Age ##
+#########
+stopped_age <- stopped %>%
+  summarise(
+    mean_age = mean(`What is your age?`, na.rm = TRUE),
+    sd_age = sd(`What is your age?`, na.rm = TRUE),
+    n = sum(!is.na(`What is your age?`))
+  )
+# Print the summary
+View(stopped_age)
+
+############
+## Gender ##
+############
+stopped_gender <- stopped %>%
+  group_by(`To which gender identity do you most identify?`) %>%
+  summarise(
+    count = n(),
+    percentage = (n() / nrow(stopped)) * 100
+  )
+# View the summary
+View(stopped_gender)
+
+#########
+## Sex ##
+#########
+stopped_sex <- stopped %>%
+  group_by(`What is your sex?Indicate your sex assigned at birth.`) %>%
+  summarise(
+    count = n(),
+    percentage = (n() / nrow(stopped)) * 100
+  )
+# Print the summary
+View(stopped_sex)
+
+###########################
+## Province of Residence ##
+###########################
+stopped_province <- stopped %>%
+  group_by(`Select the province or territory in which you currently live.`) %>%
+  summarise(
+    count = n(),
+    percentage = (n() / nrow(stopped)) * 100
+  )
+# View the summary
+View(stopped_province)
+
+
+#################################
+## Highest Education Completed ##
+#################################
+stopped_education <- stopped %>%
+  group_by(`What is the highest level of education you completed?`) %>%
+  summarise(
+    count = n(),
+    percentage = (n() / nrow(stopped)) * 100
+  )
+# View the summary
+View(stopped_education)
+
+#######################
+## Employment Status ##
+#######################
+stopped_employment <- stopped %>% 
+  group_by(`What is your employment status?`) %>% 
+  summarise(
+    count = n(),
+    percentage = (n() / nrow(stopped)) * 100
+  )
+# View the summary
+View(stopped_employment)
+
+#######################
+## Driving Frequency ##
+#######################
+stopped_driving_frequency <- stopped %>%
+  group_by(`How often do you drive?`) %>%
+  summarise(
+    count = n(),
+    percentage = (n() / nrow(stopped)) * 100
+  )
+# View the summary
+View(stopped_driving_frequency)
+
+######################
+## Household Income ##
+######################
+stopped_income <- stopped %>%
+  group_by(`Which category matches your annual household income?`) %>%
+  summarise(
+    count = n(),
+    percentage = (n() / nrow(stopped)) * 100
+  )
+# View the summary
+View(stopped_income)
+
+###########################
+## People They Live With ## 
+###########################
+stopped_living_situation <- stopped %>%
+  separate_rows(`With whom do you currently live? Select all that apply.`, sep = ";") %>%
+  mutate(Living_Situation = str_trim(`With whom do you currently live? Select all that apply.`)) %>%
+  filter(Living_Situation %in% c(
+    "I live alone.",
+    "I live with my spouse or partner.",
+    "I live with my children.",
+    "I live with friends or other family members.",
+    "Other"
+  )) %>%
+  count(Living_Situation, name = "count") %>%
+  mutate(percentage = (count / nrow(stopped)) * 100)
+View(stopped_living_situation)
+
+############
+## OSSS-3 ##
+############
+# I will present the avg and sd for the numerical value of all the answers and provide a summary of the descriptive labels while idenitfying the # of people who fell into each of them using the cutoffs for the measure. 
+# Breakdown by individual score
+stopped_osss_individual <- stopped %>%
+  count(OSSS_score = stopped[[19]], name = "count") %>%
+  arrange(OSSS_score) %>%
+  mutate(percentage = (count / sum(count, na.rm = TRUE)) * 100)
+View(stopped_osss_individual)
+
+# Breakdown by social support level
+stopped_osss_support <- stopped %>%
+  mutate(Social_Support_Level = case_when(
+    stopped[[19]] >= 3 & stopped[[19]] <= 8 ~ "Poor Social Support",
+    stopped[[19]] >= 9 & stopped[[19]] <= 11 ~ "Moderate Social Support",
+    stopped[[19]] >= 12 ~ "Strong Social Support",
+    TRUE ~ NA_character_
+  )) %>%
+  count(Social_Support_Level, name = "count") %>%
+  mutate(percentage = (count / sum(count, na.rm = TRUE)) * 100)
+View(stopped_osss_support)
+
+
+###########
+## PHQ-2 ##
+###########
+# I will present the avg and sd for the numerical value of all the answers and provide a summary of the descriptive labels while idenitfying the # of people who fell into each of them using the cutoffs for the measure. 
+# Breakdown by individual PHQ-2 score
+stopped_phq2_individual <- stopped %>%
+  count(PHQ2_score = stopped[[28]], name = "count") %>%
+  arrange(PHQ2_score) %>%
+  mutate(percentage = (count / sum(count, na.rm = TRUE)) * 100)
+View(stopped_phq2_individual)
+
+# Breakdown by PHQ-2 depression status (using a cutoff score of 2 for possible depression)
+stopped_phq2_depression <- stopped %>%
+  mutate(PHQ2_status = case_when(
+    stopped[[28]] >= 2 ~ "Possible Depression (PHQ-2 ≥ 2)",
+    TRUE ~ "No Depression (PHQ-2 < 2)"
+  )) %>%
+  count(PHQ2_status, name = "count") %>%
+  mutate(percentage = (count / sum(count, na.rm = TRUE)) * 100)
+View(stopped_phq2_depression)
+```
+
+```{r}
+#| label: using Calculations
+#########
+## Age ##
+#########
+using_age <- using %>%
+  summarise(
+    mean_age = mean(`What is your age?`, na.rm = TRUE),
+    sd_age = sd(`What is your age?`, na.rm = TRUE),
+    n = sum(!is.na(`What is your age?`))
+  )
+# Print the summary
+View(using_age)
+
+############
+## Gender ##
+############
+using_gender <- using %>%
+  group_by(`To which gender identity do you most identify?`) %>%
+  summarise(
+    count = n(),
+    percentage = (n() / nrow(using)) * 100
+  )
+# View the summary
+View(using_gender)
+
+#########
+## Sex ##
+#########
+using_sex <- using %>%
+  group_by(`What is your sex?Indicate your sex assigned at birth.`) %>%
+  summarise(
+    count = n(),
+    percentage = (n() / nrow(using)) * 100
+  )
+# Print the summary
+View(using_sex)
+
+###########################
+## Province of Residence ##
+###########################
+using_province <- using %>%
+  group_by(`Select the province or territory in which you currently live.`) %>%
+  summarise(
+    count = n(),
+    percentage = (n() / nrow(using)) * 100
+  )
+# View the summary
+View(using_province)
+
+#################################
+## Highest Education Completed ##
+#################################
+using_education <- using %>%
+  group_by(`What is the highest level of education you completed?`) %>%
+  summarise(
+    count = n(),
+    percentage = (n() / nrow(using)) * 100
+  )
+# View the summary
+View(using_education)
+
+#######################
+## Employment Status ##
+#######################
+using_employment <- using %>% 
+  group_by(`What is your employment status?`) %>% 
+  summarise(
+    count = n(),
+    percentage = (n() / nrow(using)) * 100
+  )
+# View the summary
+View(using_employment)
+
+#######################
+## Driving Frequency ##
+#######################
+using_driving_frequency <- using %>%
+  group_by(`How often do you drive?`) %>%
+  summarise(
+    count = n(),
+    percentage = (n() / nrow(using)) * 100
+  )
+# View the summary
+View(using_driving_frequency)
+
+######################
+## Household Income ##
+######################
+using_income <- using %>%
+  group_by(`Which category matches your annual household income?`) %>%
+  summarise(
+    count = n(),
+    percentage = (n() / nrow(using)) * 100
+  )
+# View the summary
+View(using_income)
+
+###########################
+## People They Live With ## 
+###########################
+using_living_situation <- using %>%
+  separate_rows(`With whom do you currently live? Select all that apply.`, sep = ";") %>%
+  mutate(Living_Situation = str_trim(`With whom do you currently live? Select all that apply.`)) %>%
+  filter(Living_Situation %in% c(
+    "I live alone.",
+    "I live with my spouse or partner.",
+    "I live with my children.",
+    "I live with friends or other family members.",
+    "Other"
+  )) %>%
+  count(Living_Situation, name = "count") %>%
+  mutate(percentage = (count / nrow(using)) * 100)
+View(using_living_situation)
+
+############
+## OSSS-3 ##
+############
+# Breakdown by individual score for 'using' group
+using_osss_individual <- using %>%
+  count(OSSS_score = using[[19]], name = "count") %>%
+  arrange(OSSS_score) %>%
+  mutate(percentage = (count / sum(count, na.rm = TRUE)) * 100)
+View(using_osss_individual)
+
+# Breakdown by social support level for 'using' group
+using_osss_support <- using %>%
+  mutate(Social_Support_Level = case_when(
+    using[[19]] >= 3 & using[[19]] <= 8 ~ "Poor Social Support",
+    using[[19]] >= 9 & using[[19]] <= 11 ~ "Moderate Social Support",
+    using[[19]] >= 12 ~ "Strong Social Support",
+    TRUE ~ NA_character_
+  )) %>%
+  count(Social_Support_Level, name = "count") %>%
+  mutate(percentage = (count / sum(count, na.rm = TRUE)) * 100)
+View(using_osss_support)
+
+###########
+## PHQ-2 ##
+###########
+# Breakdown by individual PHQ-2 score for 'using' group
+using_phq2_individual <- using %>%
+  count(PHQ2_score = using[[28]], name = "count") %>%
+  arrange(PHQ2_score) %>%
+  mutate(percentage = (count / sum(count, na.rm = TRUE)) * 100)
+View(using_phq2_individual)
+
+# Breakdown by PHQ-2 depression status for 'using' group (using a cutoff score of 2 for possible depression)
+using_phq2_depression <- using %>%
+  mutate(PHQ2_status = case_when(
+    using[[28]] >= 2 ~ "Possible Depression (PHQ-2 ≥ 2)",
+    TRUE ~ "No Depression (PHQ-2 < 2)"
+  )) %>%
+  count(PHQ2_status, name = "count") %>%
+  mutate(percentage = (count / sum(count, na.rm = TRUE)) * 100)
+View(using_phq2_depression)
+```
+
+```{r}
+#| label: Comparison
+#########
+## Age ##
+#########
+# Calculate Cohen's d for Age comparison between 'using' and 'stopped'
+using_age <- using %>%
+  summarise(
+    mean_age = mean(`What is your age?`, na.rm = TRUE),
+    sd_age = sd(`What is your age?`, na.rm = TRUE),
+    n = sum(!is.na(`What is your age?`))
+  )
+
+stopped_age <- stopped %>%
+  summarise(
+    mean_age = mean(`What is your age?`, na.rm = TRUE),
+    sd_age = sd(`What is your age?`, na.rm = TRUE),
+    n = sum(!is.na(`What is your age?`))
+  )
+
+# Calculate Cohen's d
+pooled_sd_age <- sqrt(((using_age$n - 1) * using_age$sd_age^2 + (stopped_age$n - 1) * stopped_age$sd_age^2) /
+                      (using_age$n + stopped_age$n - 2))
+T1_cohen_d_age <- (using_age$mean_age - stopped_age$mean_age) / pooled_sd_age
+
+############
+## Gender ##
+############
+# Exclude the 'Non-binary' category from both datasets
+using_gender_filtered <- using %>%
+  filter(`To which gender identity do you most identify?` != "Non-binary")
+
+stopped_gender_filtered <- stopped %>%
+  filter(`To which gender identity do you most identify?` != "Non-binary")
+
+# Create contingency tables for filtered data
+table_using_filtered <- table(using_gender_filtered$`To which gender identity do you most identify?`)
+table_stopped_filtered <- table(stopped_gender_filtered$`To which gender identity do you most identify?`)
+
+# Run the chi-squared test on the filtered data
+chisq_test_filtered <- chisq.test(rbind(table_using_filtered, table_stopped_filtered))
+
+# Display the chi-squared test results
+chisq_test_filtered
+
+# Calculate Cramér's V for the filtered data
+T1_cramers_v_filtered <- sqrt(chisq_test_filtered$statistic / (sum(table_using_filtered) * (min(dim(rbind(table_using_filtered, table_stopped_filtered))) - 1)))
+
+# Display Cramér's V
+T1_cramers_v_filtered
+
+#########
+## Sex ##
+#########
+using_sex_table <- table(using$`What is your sex?Indicate your sex assigned at birth.`)
+stopped_sex_table <- table(stopped$`What is your sex?Indicate your sex assigned at birth.`)
+
+# Combine them
+sex_table <- rbind(using_sex_table, stopped_sex_table)
+
+# Cramér's V for Sex
+T1_sex_cramers_v <- assocstats(sex_table)$cramer
+
+###########################
+## Province of Residence ##
+###########################
+# Ensure that both tables have the same factor levels
+province_levels <- union(levels(factor(using$`Select the province or territory in which you currently live.`)),
+                         levels(factor(stopped$`Select the province or territory in which you currently live.`)))
+
+using_province_table <- table(factor(using$`Select the province or territory in which you currently live.`, levels = province_levels))
+stopped_province_table <- table(factor(stopped$`Select the province or territory in which you currently live.`, levels = province_levels))
+
+# Combine them after ensuring the factor levels are consistent
+province_table <- rbind(using_province_table, stopped_province_table)
+
+# Cramér's V for Province
+T1_province_cramers_v <- assocstats(province_table)$cramer
+
+#################################
+## Highest Education Completed ##
+#################################
+using_education_table <- table(using$`What is the highest level of education you completed?`)
+stopped_education_table <- table(stopped$`What is the highest level of education you completed?`)
+
+# Combine them
+education_table <- rbind(using_education_table, stopped_education_table)
+
+# Cramér's V for Education
+T1_education_cramers_v <- assocstats(education_table)$cramer
+
+#######################
+## Employment Status ##
+#######################
+using_employment_table <- table(using$`What is your employment status?`)
+stopped_employment_table <- table(stopped$`What is your employment status?`)
+
+# Combine them
+employment_table <- rbind(using_employment_table, stopped_employment_table)
+
+# Cramér's V for Employment
+T1_employment_cramers_v <- assocstats(employment_table)$cramer
+
+#######################
+## Driving Frequency ##
+#######################
+using_driving_frequency_table <- table(using$`How often do you drive?`)
+stopped_driving_frequency_table <- table(stopped$`How often do you drive?`)
+
+# Combine them
+driving_frequency_table <- rbind(using_driving_frequency_table, stopped_driving_frequency_table)
+
+# Cramér's V for Driving Frequency
+T1_driving_frequency_cramers_v <- assocstats(driving_frequency_table)$cramer
+
+######################
+## Household Income ##
+######################
+using_income_table <- table(using$`Which category matches your annual household income?`)
+stopped_income_table <- table(stopped$`Which category matches your annual household income?`)
+
+# Combine them
+income_table <- rbind(using_income_table, stopped_income_table)
+
+# Cramér's V for Household Income
+T1_income_cramers_v <- assocstats(income_table)$cramer
+
+###########################
+## People They Live With ##
+###########################
+# Combine the two datasets by Living_Situation
+combined_living_situation <- full_join(using_living_situation, stopped_living_situation, 
+                                       by = "Living_Situation", 
+                                       suffix = c("_using", "_stopped"))
+
+# Replace NA values with 0 for count columns
+combined_living_situation[is.na(combined_living_situation)] <- 0
+
+# Create a contingency table
+contingency_table <- matrix(c(
+  combined_living_situation$count_using,
+  combined_living_situation$count_stopped
+), ncol = 2, byrow = FALSE)
+rownames(contingency_table) <- combined_living_situation$Living_Situation
+colnames(contingency_table) <- c("Using", "Stopped")
+
+# Calculate Cramér's V
+cramers_v <- assocstats(contingency_table)$cramer
+
+############
+## OSSS-3 ##
+############
+# Create a combined dataframe with group and OSSS-3 level
+osss_combined <- bind_rows(
+  using %>% mutate(Group = "Using"),
+  stopped %>% mutate(Group = "Stopped")
+) %>%
+  mutate(OSSS_Level = case_when(
+    .[[19]] >= 3 & .[[19]] <= 8 ~ "Poor",
+    .[[19]] >= 9 & .[[19]] <= 11 ~ "Moderate",
+    .[[19]] >= 12 ~ "Strong",
+    TRUE ~ NA_character_
+  )) %>%
+  filter(!is.na(OSSS_Level))
+
+# Create the contingency table
+osss_table <- table(osss_combined$Group, osss_combined$OSSS_Level)
+
+# Calculate Cramér's V
+T1_osss_cramers_v <- assocstats(osss_table)
+print(T1_osss_cramers_v)
+
+###########
+## PHQ-2 ##
+###########
+# Create a table of PHQ-2 depression status by group
+phq_table <- table(
+  Group = c(rep("Using", nrow(using)), rep("Stopped", nrow(stopped))),
+  Depression_Status = c(
+    ifelse(using[[28]] >= 2, "Possible Depression (PHQ-2 ≥ 2)", "No Depression (PHQ-2 < 2)"),
+    ifelse(stopped[[28]] >= 2, "Possible Depression (PHQ-2 ≥ 2)", "No Depression (PHQ-2 < 2)")
+  )
+)
+# Calculate Cramér's V
+T1_phq_cramers_v <- assocstats(phq_table)
+print(T1_phq_cramers_v)
+
+# View the output
+# For Cohen's d (e.g., comparing means between two groups for age)
+print(paste("Cohen's d for age comparison:", T1_cohen_d_age))
+
+# For Cramér's V (e.g., for categorical variables like sex, province, etc.)
+print(paste("Cramér's V for sex comparison:", T1_sex_cramers_v))
+print(paste("Cramér's V for province comparison:", T1_province_cramers_v))
+print(paste("Cramér's V for education comparison:", T1_education_cramers_v))
+print(paste("Cramér's V for employment comparison:", T1_employment_cramers_v))
+print(paste("Cramér's V for driving frequency comparison:", T1_driving_frequency_cramers_v))
+print(paste("Cramér's V for income comparison:", T1_income_cramers_v))
+
+# For general Cramér's V statistic (living situation comparison)
+print(paste("Cramér's V for living situation comparison:", cramers_v))
+```
+
 
 ## Table 2 Code With Comparison (HEALTH INFORMATION)
 

@@ -149,6 +149,8 @@ using <- bind_rows(
 
 ```{r}
 #| label: Classification
+#| eval: false
+#| include: false
 ## Some people were able to continue in the study despite not indicating whether or not they had stopped. Because of this the AR groups contains 26 more participants than the 'stopped' and 'using' groups. Since this won't look good in a table and may lead to questions or concerns about my data screening process I have decided I will make a subset of the data with these participants and examine which set of questions they answered. Some of the questions were worded for past use (those who stopped) and other questions were worded for present use (those still using). Given this, based on the set of questions they answered that is the group they will be placed in. If participants answered both sets of questions I think it is best to exclude them since we do not know what group they belong too and adding them to any group could change the results. 
 
 ## I could also reach out to Dr. Yakovenko about this once I have determined what group they are in and maybe run a sensitivity analysis. That way I can describe the procedure in my methods and then justify that this was done properly because adding them did not have a significant impact on the results. Or if it did, maybe I should not of grouped them how I thought and it may be best to simply remove them from the analysis.
@@ -196,11 +198,6 @@ final_skipped_questions_analysis <- Skipped_question %>%
   arrange(`How often are you currently taking them?`)
 
 ## The final_skipped_questions_analysis showed that the remaining Record IDs (30, 50, and 186) all indicated that they are not currently taking any BZRAs. For that reason they will be added to the stopped group. 
-
-
-
-
-
 ```
 
 ## Table 1 Code With Comparison (DEMOGRAPHICS)
